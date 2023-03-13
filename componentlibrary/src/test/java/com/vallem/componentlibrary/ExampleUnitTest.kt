@@ -1,4 +1,4 @@
-package com.vallem.sylph
+package com.vallem.componentlibrary
 
 import org.junit.Test
 

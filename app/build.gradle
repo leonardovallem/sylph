@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.sylph'
+    namespace 'com.vallem.sylph'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.sylph"
+        applicationId "com.vallem.sylph"
         minSdk 28
         targetSdk 33
         versionCode 1
@@ -79,4 +79,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+
+    implementation project(":componentlibrary")
 }
