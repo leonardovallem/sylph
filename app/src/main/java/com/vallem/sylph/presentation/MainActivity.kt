@@ -3,8 +3,8 @@ package com.vallem.sylph.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.vallem.sylph.presentation.theme.SylphTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.vallem.componentlibrary.ui.theme.SylphTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

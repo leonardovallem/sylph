@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.vallem.componentlibrary.ui.classes.SylphIcon
 import com.vallem.componentlibrary.ui.classes.pairWith
 import com.vallem.componentlibrary.ui.classes.toSylphIcon
+import com.vallem.componentlibrary.ui.theme.SylphTheme
 
 @Composable
 fun SylphTextField(
@@ -112,34 +113,36 @@ fun SylphTextField(
 private fun SylphTextFields() {
     var value by remember { mutableStateOf("") }
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(24.dp),
-    ) {
-        SylphTextField(
-            value = value,
-            onValueChange = { value = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+    SylphTheme {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(24.dp),
+        ) {
+            SylphTextField(
+                value = value,
+                onValueChange = { value = it },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        SylphTextField(
-            value = value,
-            onValueChange = { value = it },
-            leadingIcon = Icons.Rounded.Person.toSylphIcon(
-                Color.Unspecified pairWith Color.Magenta,
-            ),
-            placeholder = "User",
-            modifier = Modifier.fillMaxWidth()
-        )
+            SylphTextField(
+                value = value,
+                onValueChange = { value = it },
+                leadingIcon = Icons.Rounded.Person.toSylphIcon(
+                    Color.Unspecified pairWith Color.Magenta,
+                ),
+                placeholder = "User",
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        SylphTextField(
-            value = value,
-            onValueChange = { value = it },
-            trailingIcon = Icons.Rounded.Clear.toSylphIcon(),
-            modifier = Modifier.fillMaxWidth()
-        )
+            SylphTextField(
+                value = value,
+                onValueChange = { value = it },
+                trailingIcon = Icons.Rounded.Clear.toSylphIcon(),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
