@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,13 +15,13 @@ import androidx.compose.ui.unit.dp
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 
 @Composable
-fun SylphFilledButton(
+fun SylphTextButton(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
-    FilledTonalButton(
+    TextButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier,
@@ -32,7 +32,7 @@ fun SylphFilledButton(
 
 @Preview
 @Composable
-private fun SylphFilledButton() {
+private fun SylphTextButton() {
     SylphTheme {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -41,7 +41,7 @@ private fun SylphFilledButton() {
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(24.dp),
         ) {
-            SylphFilledButton(label = "Button", onClick = {})
+            SylphTextButton(label = "Button", onClick = {})
         }
     }
 }
