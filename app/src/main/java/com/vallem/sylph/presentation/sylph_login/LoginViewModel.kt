@@ -6,12 +6,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.vallem.componentlibrary.util.ValidationRule
+import com.vallem.sylph.domain.model.Result
+import com.vallem.sylph.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val repository: AuthRepository
+) : ViewModel() {
     var isRegister by mutableStateOf(false)
         private set
 
@@ -26,9 +33,7 @@ class LoginViewModel @Inject constructor() : ViewModel() {
     private var hasEmailFirstInput by mutableStateOf(false)
     private var hasPasswordFirstInput by mutableStateOf(false)
 
-    val validName by derivedStateOf {
-        !hasNameFirstInput || name.isNotBlank()
-    }
+    val validName by derivedStateOf { !hasNameFirstInput || name.isNotBlank() }
     val validEmail by derivedStateOf {
         !hasEmailFirstInput || Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
@@ -36,7 +41,13 @@ class LoginViewModel @Inject constructor() : ViewModel() {
         !hasPasswordFirstInput || ValidationRule.Password.isValid(password)
     }
 
-    fun onEvent(event: LoginEvent) = when (event) {
+    var login by mutableStateOf<Result<FirebaseUser>?>(null)
+    var signUp by mutableStateOf<Result<FirebaseUser>?>(null)
+
+    val currentUser: FirebaseUser?
+        get() = repository.currentUser
+
+    fun onEvent(event: LoginEvent): Any = when (event) {
         is LoginEvent.Update.Name -> {
             hasNameFirstInput = true
             name = event.value
@@ -54,6 +65,20 @@ class LoginViewModel @Inject constructor() : ViewModel() {
 
         is LoginEvent.SwitchMode -> isRegister = !isRegister
 
-        LoginEvent.Login -> Unit
+        is LoginEvent.SignIn -> viewModelScope.launch {
+            login = Result.Loading
+            login = repository.login(email, password)
+        }
+
+        is LoginEvent.SignUp -> viewModelScope.launch {
+            signUp = Result.Loading
+            signUp = repository.signup(name, email, password)
+        }
+
+        is LoginEvent.SignOut -> {
+            repository.logout()
+            login = null
+            signUp = null
+        }
     }
 }

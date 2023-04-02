@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "746517244872",
+    "project_id": "sylph-e17c3",
+    "storage_bucket": "sylph-e17c3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746517244872:android:e37c4c8689c05027be6efd",
+        "android_client_info": {
+          "package_name": "com.vallem.sylph"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "746517244872-0b3nl8r3e3vgj010salfhqommn1eavoc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJZb-4stM-tWKgUyWZI7gOMzEVZPVhwek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "746517244872-0b3nl8r3e3vgj010salfhqommn1eavoc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

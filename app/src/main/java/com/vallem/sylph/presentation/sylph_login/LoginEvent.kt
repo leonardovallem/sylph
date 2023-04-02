@@ -8,5 +8,7 @@ sealed interface LoginEvent {
     }
 
     object SwitchMode : Update
-    object Login : LoginEvent
+    object SignIn : LoginEvent
+    object SignUp : LoginEvent
+    object SignOut : LoginEvent
 }

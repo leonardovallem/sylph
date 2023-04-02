@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -24,7 +25,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -113,7 +118,7 @@ fun SylphTextField(
 
                     // it() cannot be hidden, so the placeholder is being stacked at the top of it
                     // https://slack-chats.kotlinlang.org/t/9662211/i-have-a-basictextfield-field-which-when-cleaning-up-the-tex
-                    Box {
+                    Box(modifier = Modifier.weight(1f)) {
                         if (value.isEmpty()) placeholder?.let {
                             Text(
                                 text = it,
@@ -126,12 +131,23 @@ fun SylphTextField(
                         it()
                     }
 
-                    trailingIcon?.let {
-                        Icon(
-                            imageVector = it.icon,
-                            contentDescription = null,
-                            tint = it.colors.inactive
-                        )
+                    trailingIcon?.run {
+                        val iconContent = @Composable {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = colors.inactive
+                            )
+                        }
+
+                        action?.let {
+                            IconButton(
+                                onClick = it,
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .requiredSize(24.dp)
+                            ) { iconContent() }
+                        } ?: iconContent()
                     }
                 }
             }
@@ -149,6 +165,51 @@ fun SylphTextField(
             }
         }
     }
+}
+
+@Composable
+fun SylphPasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    leadingIcon: SylphIcon? = null,
+    placeholder: String? = null,
+    helperText: String? = null,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+) {
+    var currentVisualTransformation by remember {
+        mutableStateOf<VisualTransformation>(PasswordVisualTransformation())
+    }
+
+    SylphTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        leadingIcon = leadingIcon,
+        trailingIcon = SylphIcon(
+            icon = with(Icons.Rounded) {
+                if (currentVisualTransformation is PasswordVisualTransformation) Visibility
+                else VisibilityOff
+            },
+            colors = MaterialTheme.colorScheme.run {
+                onSurfaceVariant pairWith onSurfaceVariant
+            },
+            action = {
+                currentVisualTransformation = when (currentVisualTransformation) {
+                    is PasswordVisualTransformation -> VisualTransformation.None
+                    else -> PasswordVisualTransformation()
+                }
+            }
+        ),
+        visualTransformation = currentVisualTransformation,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        interactionSource = interactionSource,
+        placeholder = placeholder,
+        helperText = helperText,
+    )
 }
 
 @Preview
