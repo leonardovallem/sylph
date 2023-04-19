@@ -133,9 +133,9 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Password(it)) },
                     placeholder = "Password",
                     leadingIcon = passwordIcon,
-                    state = SylphTextFieldState.errorIf(!viewModel.validPassword),
+                    state = SylphTextFieldState.errorIf(viewModel.isRegister && !viewModel.validPassword),
                     helperText = ValidationRule.Password.helperTextFor(viewModel.password)
-                        .takeIf { !viewModel.validPassword },
+                        .takeIf { viewModel.isRegister && !viewModel.validPassword },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(onGo = { viewModel.onEvent(LoginEvent.SignIn) }),
                     modifier = Modifier

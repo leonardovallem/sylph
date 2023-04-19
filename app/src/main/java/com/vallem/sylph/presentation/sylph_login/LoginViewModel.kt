@@ -38,7 +38,9 @@ class LoginViewModel @Inject constructor(
         !hasEmailFirstInput || Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
     val validPassword by derivedStateOf {
-        !hasPasswordFirstInput || ValidationRule.Password.isValid(password)
+        !hasPasswordFirstInput
+                || (!isRegister && password.isNotEmpty())
+                || ValidationRule.Password.isValid(password)
     }
 
     val validInput by derivedStateOf {
@@ -73,7 +75,10 @@ class LoginViewModel @Inject constructor(
             password = event.value
         }
 
-        is LoginEvent.SwitchMode -> isRegister = !isRegister
+        is LoginEvent.SwitchMode -> {
+            if (!isRegister) hasNameFirstInput = true
+            isRegister = !isRegister
+        }
 
         is LoginEvent.SignIn -> viewModelScope.launch {
             login = Result.Loading
