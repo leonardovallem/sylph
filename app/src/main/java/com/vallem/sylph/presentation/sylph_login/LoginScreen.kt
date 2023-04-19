@@ -27,8 +27,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,12 +61,6 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
     val (emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
         onSurfaceVariant pairWith primary
     }.forIcons(Icons.Outlined.Email, Icons.Outlined.Lock)
-
-    val validInput by remember {
-        derivedStateOf {
-            viewModel.validEmail && viewModel.validPassword
-        }
-    }
 
     rememberSystemUiController().setSystemBarsColor(
         color = MaterialTheme.colorScheme.surface,
@@ -113,6 +105,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                         onValueChange = { viewModel.onEvent(LoginEvent.Update.Name(it)) },
                         placeholder = "Name",
                         leadingIcon = emailIcon,
+                        state = SylphTextFieldState.errorIf(!viewModel.validName),
                         helperText = "Nome não pode ficar em branco".takeIf { !viewModel.validName },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         modifier = Modifier
@@ -164,7 +157,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                 } else Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     SylphFilledButton(
                         label = if (viewModel.isRegister) "Criar conta" else "Login",
-                        enabled = validInput,
+                        enabled = viewModel.validInput,
                         onClick = {
                             viewModel.onEvent(if (viewModel.isRegister) LoginEvent.SignUp else LoginEvent.SignIn)
                         },

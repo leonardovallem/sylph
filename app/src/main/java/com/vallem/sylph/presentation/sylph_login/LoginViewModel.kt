@@ -41,6 +41,16 @@ class LoginViewModel @Inject constructor(
         !hasPasswordFirstInput || ValidationRule.Password.isValid(password)
     }
 
+    val validInput by derivedStateOf {
+        if (isRegister) {
+            if (!hasNameFirstInput || !hasEmailFirstInput || !hasPasswordFirstInput) false
+            else validEmail && validPassword && validName
+        } else {
+            if (!hasEmailFirstInput || !hasPasswordFirstInput) false
+            else validEmail && validPassword
+        }
+    }
+
     var login by mutableStateOf<Result<FirebaseUser>?>(null)
     var signUp by mutableStateOf<Result<FirebaseUser>?>(null)
 
