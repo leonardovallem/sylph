@@ -72,7 +72,7 @@ fun SylphTextField(
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     val borderColor by animateColorAsState(
-        targetValue = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+        targetValue = if (isFocused) state.borderColor else Color.Transparent,
         label = "TextFieldBorderColor",
         animationSpec = tween()
     )
@@ -102,7 +102,11 @@ fun SylphTextField(
                 ) {
                     leadingIcon?.let {
                         val leadingIconColor by animateColorAsState(
-                            targetValue = if (isFocused) it.colors.active else it.colors.inactive,
+                            targetValue = when {
+                                state != SylphTextFieldState.Default -> state.textColor
+                                isFocused -> it.colors.active
+                                else -> it.colors.inactive
+                            },
                             label = "TextFieldLeadingIconColor",
                             animationSpec = tween()
                         )

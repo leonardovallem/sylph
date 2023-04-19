@@ -56,6 +56,14 @@ val SylphTextFieldState.backgroundColor: Color
         SylphTextFieldState.Warning -> SylphTheme.colorScheme.WarningContainer
     }
 
+val SylphTextFieldState.borderColor: Color
+    @Composable get() = when (this@borderColor) {
+        SylphTextFieldState.Default -> MaterialTheme.colorScheme.primary
+        SylphTextFieldState.Success -> SylphTheme.colorScheme.Success
+        SylphTextFieldState.Error -> MaterialTheme.colorScheme.error
+        SylphTextFieldState.Warning -> SylphTheme.colorScheme.Warning
+    }
+
 @OptIn(ExperimentalLayoutApi::class)
 @Preview
 @Preview(uiMode = UI_MODE_NIGHT_YES)

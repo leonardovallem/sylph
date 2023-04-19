@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -58,9 +59,9 @@ import com.vallem.sylph.presentation.destinations.OnboardingScreenDestination
 fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hiltViewModel()) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val (emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
+    val (nameIcon, emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
         onSurfaceVariant pairWith primary
-    }.forIcons(Icons.Outlined.Email, Icons.Outlined.Lock)
+    }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
 
     rememberSystemUiController().setSystemBarsColor(
         color = MaterialTheme.colorScheme.surface,
@@ -104,7 +105,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                         value = viewModel.name,
                         onValueChange = { viewModel.onEvent(LoginEvent.Update.Name(it)) },
                         placeholder = "Name",
-                        leadingIcon = emailIcon,
+                        leadingIcon = nameIcon,
                         state = SylphTextFieldState.errorIf(!viewModel.validName),
                         helperText = "Nome não pode ficar em branco".takeIf { !viewModel.validName },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
