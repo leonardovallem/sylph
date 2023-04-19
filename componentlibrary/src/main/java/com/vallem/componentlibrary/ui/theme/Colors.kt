@@ -21,6 +21,12 @@ sealed interface Colors {
     val TransgenderFlagMediumBlue: Color
     val TransgenderFlagDarkBlue: Color
 
+    val Success: Color
+    val SuccessContainer: Color
+
+    val Warning: Color
+    val WarningContainer: Color
+
     fun toColorScheme(): ColorScheme
 
 
@@ -40,6 +46,11 @@ sealed interface Colors {
         override val TransgenderFlagLightBlue = Color(0xFFFF5A9B)
         override val TransgenderFlagMediumBlue = Color(0xFF9B4E8F)
         override val TransgenderFlagDarkBlue = Color(0xFF5BCEFA)
+
+        override val Success = Color(0xFF9AE374)
+        override val SuccessContainer = Color(0xFF2AB304)
+        override val Warning = Color(0xFFFFAAA0)
+        override val WarningContainer = Color(0xFFFF4A40)
 
         override fun toColorScheme() = lightColorScheme(
             primary = Primary,
@@ -69,6 +80,11 @@ sealed interface Colors {
         override val TransgenderFlagLightBlue = Color(0xFFFF8A80)
         override val TransgenderFlagMediumBlue = Color(0xFFB39DDB)
         override val TransgenderFlagDarkBlue = Color(0xFF81D4FA)
+
+        override val Success = Color(0xFF2AB304)
+        override val SuccessContainer = Color(0xFF9AE374)
+        override val Warning = Color(0xFFFF4A60)
+        override val WarningContainer = Color(0xFFFFAAA0)
 
         override fun toColorScheme() = lightColorScheme(
             primary = Primary,

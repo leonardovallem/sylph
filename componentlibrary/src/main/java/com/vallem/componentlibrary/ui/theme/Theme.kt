@@ -16,6 +16,11 @@ import androidx.core.view.WindowCompat
 val LightColorScheme = Colors.Light.toColorScheme()
 val DarkColorScheme = Colors.Dark.toColorScheme()
 
+object SylphTheme {
+    val colorScheme: Colors
+        @Composable get() = if (isSystemInDarkTheme()) Colors.Light else Colors.Dark
+}
+
 @Composable
 fun SylphTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

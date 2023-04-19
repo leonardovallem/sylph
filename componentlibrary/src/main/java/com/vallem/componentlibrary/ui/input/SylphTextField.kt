@@ -63,6 +63,7 @@ fun SylphTextField(
     trailingIcon: SylphIcon? = null,
     placeholder: String? = null,
     helperText: String? = null,
+    state: SylphTextFieldState = SylphTextFieldState.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -93,7 +94,7 @@ fun SylphTextField(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(state.backgroundColor)
                         .border(2.dp, borderColor, CircleShape)
                         .width(maxWidth)
                         .heightIn(min = 56.dp)
@@ -153,15 +154,13 @@ fun SylphTextField(
             }
 
             AnimatedVisibility(visible = helperText != null, modifier = Modifier.fillMaxWidth()) {
-                helperText?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        style = MaterialTheme.typography.labelMedium,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
+                Text(
+                    text = helperText ?: "",
+                    color = state.textColor,
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }
@@ -175,10 +174,12 @@ fun SylphPasswordField(
     leadingIcon: SylphIcon? = null,
     placeholder: String? = null,
     helperText: String? = null,
+    state: SylphTextFieldState = SylphTextFieldState.Default,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
+    val isFocused by interactionSource.collectIsFocusedAsState()
     var currentVisualTransformation by remember {
         mutableStateOf<VisualTransformation>(PasswordVisualTransformation())
     }
@@ -187,6 +188,7 @@ fun SylphPasswordField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
+        state = state,
         leadingIcon = leadingIcon,
         trailingIcon = SylphIcon(
             icon = with(Icons.Rounded) {
@@ -202,7 +204,7 @@ fun SylphPasswordField(
                     else -> PasswordVisualTransformation()
                 }
             }
-        ),
+        ).takeIf { isFocused },
         visualTransformation = currentVisualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,

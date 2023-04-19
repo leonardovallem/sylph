@@ -47,6 +47,8 @@ import com.vallem.componentlibrary.ui.classes.forIcons
 import com.vallem.componentlibrary.ui.classes.pairWith
 import com.vallem.componentlibrary.ui.input.SylphPasswordField
 import com.vallem.componentlibrary.ui.input.SylphTextField
+import com.vallem.componentlibrary.ui.input.SylphTextFieldState
+import com.vallem.componentlibrary.ui.input.errorIf
 import com.vallem.componentlibrary.util.ValidationRule
 import com.vallem.sylph.domain.model.Result
 import com.vallem.sylph.presentation.Routes
@@ -124,6 +126,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Email(it)) },
                     placeholder = "Email",
                     leadingIcon = emailIcon,
+                    state = SylphTextFieldState.errorIf(!viewModel.validEmail),
                     helperText = "Email inválido".takeIf { !viewModel.validEmail },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     modifier = Modifier
@@ -136,6 +139,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Password(it)) },
                     placeholder = "Password",
                     leadingIcon = passwordIcon,
+                    state = SylphTextFieldState.errorIf(!viewModel.validPassword),
                     helperText = ValidationRule.Password.helperTextFor(viewModel.password)
                         .takeIf { !viewModel.validPassword },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
