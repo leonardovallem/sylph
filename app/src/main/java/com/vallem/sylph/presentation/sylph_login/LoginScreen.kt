@@ -28,6 +28,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +38,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
@@ -51,6 +56,7 @@ import com.vallem.componentlibrary.ui.input.errorIf
 import com.vallem.componentlibrary.util.ValidationRule
 import com.vallem.sylph.domain.model.Result
 import com.vallem.sylph.presentation.Routes
+import com.vallem.sylph.presentation.destinations.HomeScreenDestination
 import com.vallem.sylph.presentation.destinations.OnboardingScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -63,17 +69,47 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
         onSurfaceVariant pairWith primary
     }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
 
+    val isButtonLoading by remember {
+        derivedStateOf {
+            viewModel.loginResult == Result.Loading || viewModel.signUpResult == Result.Loading
+        }
+    }
+
     rememberSystemUiController().setSystemBarsColor(
         color = MaterialTheme.colorScheme.surface,
         darkIcons = !isSystemInDarkTheme()
     )
 
-    LaunchedEffect(viewModel.login) {
-        when (val result = viewModel.login) {
+    LaunchedEffect(viewModel.loginResult) {
+        when (val result = viewModel.loginResult) {
+            is Result.Success -> navigator.navigate(HomeScreenDestination)
+
+            is Result.Failure -> snackbarHostState.showSnackbar(
+                message = when (result.e) {
+                    is FirebaseAuthInvalidCredentialsException -> "Invalid password"
+                    is FirebaseAuthInvalidUserException -> "No user found for provided email"
+
+                    else -> result.e.message.toString()
+                },
+            )
+
+            else -> Unit
+        }
+    }
+
+    LaunchedEffect(viewModel.signUpResult) {
+        when (val result = viewModel.signUpResult) {
             is Result.Success -> navigator.navigate(OnboardingScreenDestination)
 
             is Result.Failure -> snackbarHostState.showSnackbar(
-                message = result.e.message.toString(),
+                message = when (result.e) {
+                    is FirebaseAuthUserCollisionException -> {
+                        viewModel.onEvent(LoginEvent.SwitchMode)
+                        "User already registered. Please login with your account"
+                    }
+
+                    else -> result.e.message.toString()
+                },
             )
 
             else -> Unit
@@ -145,7 +181,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
             }
 
             AnimatedContent(
-                targetState = viewModel.login is Result.Loading,
+                targetState = viewModel.loginResult is Result.Loading || viewModel.loginResult is Result.Loading,
                 label = "LoginAction"
             ) { isLoading ->
                 if (isLoading) Box(
@@ -159,6 +195,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     SylphFilledButton(
                         label = if (viewModel.isRegister) "Criar conta" else "Login",
                         enabled = viewModel.validInput,
+                        isLoading = isButtonLoading,
                         onClick = {
                             viewModel.onEvent(if (viewModel.isRegister) LoginEvent.SignUp else LoginEvent.SignIn)
                         },

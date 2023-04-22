@@ -53,8 +53,8 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    var login by mutableStateOf<Result<FirebaseUser>?>(null)
-    var signUp by mutableStateOf<Result<FirebaseUser>?>(null)
+    var loginResult by mutableStateOf<Result<FirebaseUser>?>(null)
+    var signUpResult by mutableStateOf<Result<FirebaseUser>?>(null)
 
     val currentUser: FirebaseUser?
         get() = repository.currentUser
@@ -81,19 +81,19 @@ class LoginViewModel @Inject constructor(
         }
 
         is LoginEvent.SignIn -> viewModelScope.launch {
-            login = Result.Loading
-            login = repository.login(email, password)
+            loginResult = Result.Loading
+            loginResult = repository.login(email, password)
         }
 
         is LoginEvent.SignUp -> viewModelScope.launch {
-            signUp = Result.Loading
-            signUp = repository.signup(name, email, password)
+            signUpResult = Result.Loading
+            signUpResult = repository.signup(name, email, password)
         }
 
         is LoginEvent.SignOut -> {
             repository.logout()
-            login = null
-            signUp = null
+            loginResult = null
+            signUpResult = null
         }
     }
 }

@@ -7,7 +7,9 @@ import com.vallem.sylph.domain.model.Result
 import com.vallem.sylph.domain.repository.AuthRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(private val auth: FirebaseAuth) : AuthRepository {
@@ -26,15 +28,17 @@ class AuthRepositoryImpl @Inject constructor(private val auth: FirebaseAuth) : A
         name: String,
         email: String,
         password: String
-    ) = try {
-        val result = auth.createUserWithEmailAndPassword(email, password).await()
-        result.user?.updateProfile(
-            UserProfileChangeRequest.Builder().setDisplayName(name).build()
-        )?.await()
-        Result.Success(result.user!!)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        Result.Failure(e)
+    ) = withContext(Dispatchers.IO) {
+        try {
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            result.user?.updateProfile(
+                UserProfileChangeRequest.Builder().setDisplayName(name).build()
+            )?.await()
+            Result.Success(result.user!!)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.Failure(e)
+        }
     }
 
     override fun logout() = auth.signOut()
