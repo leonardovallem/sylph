@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:name=".SylphApplication"
         android:allowBackup="true"
@@ -14,10 +17,10 @@
         android:theme="@style/Theme.Sylph"
         tools:targetApi="31">
         <activity
-            android:windowSoftInputMode="adjustResize"
             android:name=".presentation.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Sylph">
+            android:theme="@style/Theme.Sylph"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
