@@ -56,9 +56,6 @@ class LoginViewModel @Inject constructor(
     var loginResult by mutableStateOf<Result<FirebaseUser>?>(null)
     var signUpResult by mutableStateOf<Result<FirebaseUser>?>(null)
 
-    val currentUser: FirebaseUser?
-        get() = repository.currentUser
-
     fun onEvent(event: LoginEvent): Any = when (event) {
         is LoginEvent.Update.Name -> {
             hasNameFirstInput = true
