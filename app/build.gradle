@@ -68,7 +68,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     def accompanistVersion = "0.30.0"
 
-    implementation 'com.mapbox.maps:android:10.12.2'
+    implementation 'com.mapbox.maps:android:10.15.0'
 
     implementation platform('com.google.firebase:firebase-bom:31.3.0')
     implementation 'com.google.firebase:firebase-analytics-ktx'

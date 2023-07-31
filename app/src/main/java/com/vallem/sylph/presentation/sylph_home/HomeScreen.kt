@@ -1,16 +1,22 @@
 package com.vallem.sylph.presentation.sylph_home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.LocationSearching
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -24,11 +30,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,26 +45,29 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.sylph.BuildConfig
+import com.vallem.sylph.map.rememberLocationProvider
 import com.vallem.sylph.map.rememberMapState
 import com.vallem.sylph.presentation.Routes
 import com.vallem.sylph.presentation.components.MapBox
-import com.vallem.sylph.presentation.components.rememberCurrentLocationState
 import com.vallem.sylph.util.extensions.point
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Destination(route = Routes.Screen.Home)
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hiltViewModel()) {
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val locationProvider = rememberLocationProvider()
 
-    val currentLocation by rememberCurrentLocationState(viewModel.locationEngine) {
-        scope.launch {
-            snackbarHostState.showSnackbar(it.cause?.message ?: "Error")
-        }
+    val location by locationProvider.location.collectAsState(initial = null)
+    val isLocationEnabled by locationProvider.isLocationEnabled.collectAsState(initial = false)
+
+    val locationSettingLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) {
+        // check if resultCode == RESULT_OK to perform an action if the location was or was not enabled
     }
-    val mapState = rememberMapState(center = currentLocation?.point)
+
+    val mapState = rememberMapState(center = location?.point)
 
     rememberSystemUiController().setSystemBarsColor(
         color = MaterialTheme.colorScheme.surface,
@@ -66,7 +76,7 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
 
     DisposableEffect(Unit) {
         onDispose {
-            currentLocation?.let(viewModel::saveCurrentLocation)
+            location?.let(viewModel::saveCurrentLocation)
         }
     }
 
@@ -84,19 +94,49 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            AnimatedVisibility(
-                visible = mapState.center != null,
-                enter = fadeIn() + slideInVertically(),
-                exit = slideOutVertically() + fadeOut()
+            FloatingActionButton(
+                onClick = {
+                    if (isLocationEnabled) mapState.center()
+                    else locationProvider.requestEnableLocation(locationSettingLauncher)
+                },
+                modifier = Modifier.padding(16.dp),
             ) {
-                FloatingActionButton(
-                    onClick = mapState::center,
-                    modifier = Modifier.padding(24.dp),
+                AnimatedContent(
+                    targetState = locationProvider.fabState,
+                    label = "HomeScreenFabTransform"
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.MyLocation,
-                        contentDescription = "Centralizar mapa em sua localização"
-                    )
+                    when (it) {
+                        HomeScreenFabState.LocationDisabled -> Icon(
+                            imageVector = Icons.Rounded.LocationOn,
+                            contentDescription = "Centralizar mapa em sua localização"
+                        )
+
+                        HomeScreenFabState.LocationNotLoaded -> {
+                            val transition = rememberInfiniteTransition(
+                                label = "LoadingLocationFabTransition"
+                            )
+                            val iconAlpha by transition.animateFloat(
+                                initialValue = 0.15f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(1_000),
+                                    repeatMode = RepeatMode.Reverse,
+                                ),
+                                label = "LoadingLocationFabAlpha"
+                            )
+
+                            Icon(
+                                imageVector = Icons.Rounded.LocationSearching,
+                                contentDescription = "Centralizar mapa em sua localização",
+                                modifier = Modifier.alpha(iconAlpha)
+                            )
+                        }
+
+                        HomeScreenFabState.LocationFound -> Icon(
+                            imageVector = Icons.Rounded.MyLocation,
+                            contentDescription = "Centralizar mapa em sua localização"
+                        )
+                    }
                 }
             }
         },
