@@ -188,6 +188,28 @@ fun ColorPalette(
     }
 }
 
+object ZoneEventColors {
+    val Danger = Color(0xFFEF3054)
+    val DangerSelected = Color(0xFFF46781)
+
+    val Safety = Color(0xFF7DDF64)
+    val SafetySelected = Color(0xFF9BE788)
+}
+
+object TransFlagColors {
+    val Blue = Color(0xFF5BCEFA)
+    val BlueSecondary = Color(0xFF5B7FFA)
+    val BlueAnalogous = Color(0xFF5BFAD6)
+
+    val OnBlue = Color(0xFF161616)
+
+    val Pink = Color(0xFFF5A9B8)
+    val PinkSecondary = Color(0xFFF5A9DE)
+    val PinkAnalogous = Color(0xFFF5C0A9)
+
+    val White = Color.White
+}
+
 @Preview(widthDp = 2000)
 @Composable
 private fun ColorPalettePreview() {

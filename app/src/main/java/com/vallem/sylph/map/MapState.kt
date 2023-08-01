@@ -2,6 +2,7 @@ package com.vallem.sylph.map
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,12 +12,25 @@ import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.annotation.AnnotationConfig
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.vallem.sylph.R
+import com.vallem.sylph.util.extensions.getDrawable
+import com.vallem.sylph.util.extensions.toBitmap
 
 class MapState(center: Point?) {
     var center by mutableStateOf<Point?>(null)
         private set
     var mapView by mutableStateOf<MapView?>(null)
         private set
+
+    private val pointAnnotationManager by derivedStateOf {
+        mapView
+            ?.annotations
+            ?.createPointAnnotationManager(AnnotationConfig())
+    }
 
     init {
         this.center = center
@@ -44,6 +58,20 @@ class MapState(center: Point?) {
 
     fun center(zoom: Double = 12.0, duration: Long = 1000L) = center?.let {
         zoomToLocation(it, zoom, duration)
+    }
+
+    fun addPointMarker(point: Point, singlePoint: Boolean) = mapView?.context?.getDrawable(
+        drawableId = R.drawable.ic_location_on_24,
+        colorId = com.vallem.componentlibrary.R.color.red
+    )?.toBitmap()?.let {
+        val pointAnnotationOptions = PointAnnotationOptions()
+            .withPoint(point)
+            .withIconImage(it)
+
+        pointAnnotationManager?.run {
+            if (singlePoint) pointAnnotationManager?.deleteAll()
+            create(pointAnnotationOptions)
+        }
     }
 }
 

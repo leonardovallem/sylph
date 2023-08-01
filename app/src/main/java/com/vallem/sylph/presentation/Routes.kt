@@ -5,5 +5,6 @@ object Routes {
         const val Onboarding = "onboarding_screen"
         const val Login = "login_screen"
         const val Home = "home_screen"
+        const val AddEvent = "add_event_screen"
     }
 }
