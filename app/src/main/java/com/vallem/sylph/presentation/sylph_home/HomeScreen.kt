@@ -59,6 +59,7 @@ import com.vallem.sylph.presentation.Routes
 import com.vallem.sylph.presentation.components.MapBox
 import com.vallem.sylph.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.presentation.model.HomeShortcut
+import com.vallem.sylph.util.PointWrapper
 import com.vallem.sylph.util.extensions.point
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -98,7 +99,7 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
             SylphTopBar(
                 title = "Explorar",
                 navigationIcon = {
-                     IconButton(onClick = { /*TODO*/ }){
+                    IconButton(onClick = { /*TODO*/ }) {
                         Icon(
                             imageVector = Icons.Rounded.Menu,
                             contentDescription = "Menu de navegação"
@@ -113,7 +114,7 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
                 shortcuts = HomeShortcut.values,
                 onShortcutClick = {
                     when (it) {
-                        HomeShortcut.AddEvent -> navigator.navigate(AddEventScreenDestination)
+                        HomeShortcut.AddEvent -> navigator.navigate(AddEventScreenDestination(null))
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -183,6 +184,10 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
             MapBox(
                 state = mapState,
                 accessToken = BuildConfig.MAP_BOX_API_TOKEN,
+                onLongClick = {
+                    navigator.navigate(AddEventScreenDestination(PointWrapper(it)))
+                    true
+                },
                 modifier = Modifier
                     .padding(12.dp)
                     .clip(RoundedCornerShape(8.dp))

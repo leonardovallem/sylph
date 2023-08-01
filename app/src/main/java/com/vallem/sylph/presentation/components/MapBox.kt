@@ -11,6 +11,7 @@ import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.ResourceOptions
 import com.mapbox.maps.Style
+import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.localization.localizeLabels
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
@@ -59,15 +60,28 @@ fun MapBox(
                         .accessToken(accessToken)
                         .build()
                 )
-            )
+            ).apply {
+                getMapboxMap().run {
+                    state.center?.let {
+                        setCamera(
+                            cameraOptions {
+                                center(it)
+                                zoom(12.0)
+                            }
+                        )
+                    }
+
+                    getStyle { style ->
+                        style.localizeLabels(context.resources.configuration.locales[0])
+                    }
+                }
+            }
         }
     ) { view ->
         state.setView(view)
 
         view.getMapboxMap().run {
-            getStyle {
-                it.localizeLabels(view.context.resources.configuration.locales[0])
-            }
+
 
             loadStyleUri(if (isDarkMode) Style.TRAFFIC_NIGHT else Style.TRAFFIC_DAY) {
                 view.location.updateSettings {

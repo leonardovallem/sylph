@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.mapbox.geojson.Point
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.result.EmptyResultBackNavigator
 import com.ramcosta.composedestinations.result.ResultBackNavigator
@@ -44,6 +44,7 @@ import com.vallem.sylph.map.rememberMapState
 import com.vallem.sylph.presentation.Routes
 import com.vallem.sylph.presentation.components.MapBox
 import com.vallem.sylph.presentation.theme.SylphTheme
+import com.vallem.sylph.util.PointWrapper
 
 enum class ZoneType {
     Safe, Dangerous
@@ -52,9 +53,9 @@ enum class ZoneType {
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Routes.Screen.AddEvent)
 @Composable
-fun AddEventScreen(navigator: ResultBackNavigator<Boolean>) {
-    var point by remember { mutableStateOf<Point?>(null) }
-    val mapState = rememberMapState(center = point)
+fun AddEventScreen(point: PointWrapper?, navigator: ResultBackNavigator<Boolean>) {
+    var currentPoint by remember { mutableStateOf(point?.value) }
+    val mapState = rememberMapState(center = currentPoint)
 
     var mapExpanded by remember { mutableStateOf(false) }
     var zoneType by remember { mutableStateOf<ZoneType?>(null) }
@@ -63,6 +64,12 @@ fun AddEventScreen(navigator: ResultBackNavigator<Boolean>) {
         targetValue = if (mapExpanded) 1f else 0.25f,
         label = "MapHeightFraction"
     )
+
+    LaunchedEffect(currentPoint) {
+        currentPoint?.let {
+            mapState.addPointMarker(it, true)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -93,8 +100,7 @@ fun AddEventScreen(navigator: ResultBackNavigator<Boolean>) {
                     accessToken = BuildConfig.MAP_BOX_API_TOKEN,
                     modifier = Modifier.size(width = maxWidth, height = maxHeight),
                     onClick = {
-                        point = it
-                        mapState.addPointMarker(it, true)
+                        currentPoint = it
                         true
                     }
                 )
@@ -116,7 +122,7 @@ fun AddEventScreen(navigator: ResultBackNavigator<Boolean>) {
                 }
             }
 
-            point?.let { Text(text = "${it.latitude()} ${it.longitude()}") }
+            currentPoint?.let { Text(text = "${it.latitude()} ${it.longitude()}") }
 
             Text(
                 text = "A zona selecionada é",
@@ -165,6 +171,6 @@ fun AddEventScreen(navigator: ResultBackNavigator<Boolean>) {
 @Composable
 private fun AddEventScreenPreview() {
     SylphTheme {
-        AddEventScreen(EmptyResultBackNavigator())
+        AddEventScreen(null, EmptyResultBackNavigator())
     }
 }
