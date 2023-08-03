@@ -5,8 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -72,11 +70,25 @@ enum class ZoneType {
     Safe, Dangerous
 }
 
+enum class SafetyReason(val label: String) {
+    WellLit("Bem iluminado"),
+    SecurityCameras("Câmeras de segurança"),
+    WellGuard("Bem policiado"),
+    FriendlyEstablishmentsAround("Estabelecimentos LGTQIAP+"),
+    Other("Outra coisa");
+
+    companion object {
+        val values = values()
+    }
+}
+
 enum class DangerReason(val label: String) {
     Battery("Agressão"),
     SexualHarassment("Assédio sexual"),
     MoralHarassment("Assédio moral"),
-    Cursing("Xingamentos");
+    Cursing("Xingamentos"),
+    Discrimination("Discriminação"),
+    Other("Outra coisa");
 
     companion object {
         val values = values()
@@ -181,10 +193,11 @@ enum class DangerVictim {
 sealed class Event(open val point: PointWrapper, open val note: String) {
     data class Safety(
         override val point: PointWrapper,
+        val reasons: Set<SafetyReason>,
         override val note: String
     ) : Event(point, note) {
         companion object {
-            fun defaultFor(point: Point) = Safety(PointWrapper(point), "")
+            fun defaultFor(point: Point) = Safety(PointWrapper(point), emptySet(), "")
         }
     }
 
@@ -197,6 +210,11 @@ sealed class Event(open val point: PointWrapper, open val note: String) {
         companion object {
             fun defaultFor(point: Point) = Danger(PointWrapper(point), emptySet(), null, "")
         }
+    }
+
+    fun update(note: String) = when (this) {
+        is Safety -> copy(note = note)
+        is Danger -> copy(note = note)
     }
 }
 
@@ -275,71 +293,102 @@ private fun EventSettings(
         AnimatedContent(
             targetState = zoneType,
             label = "ZoneTypeFields",
-            transitionSpec = {
-                fadeIn() + slideInVertically() togetherWith slideOutVertically() + fadeOut()
-            }
-        ) {
-            it  // TODO find a better way
-            when (val currentEvent = event) {
-                is Event.Safety -> Unit
-                is Event.Danger -> Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = "O que ocorreu na região marcada?",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+            transitionSpec = { fadeIn() togetherWith fadeOut() }
+        ) { type ->
+            type  // TODO find a better way
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                when (val currentEvent = event) {
+                    is Event.Safety -> {
+                        Text(
+                            text = "O que traz segurança à região marcada?",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
 
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        DangerReason.values.forEach { reason ->
-                            SylphChip.Small(
-                                text = reason.label,
-                                selected = reason in currentEvent.reasons,
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SafetyReason.values.forEach { reason ->
+                                SylphChip.Small(
+                                    text = reason.label,
+                                    selected = reason in currentEvent.reasons,
+                                    onClick = {
+                                        event = currentEvent.copy(
+                                            reasons = run {
+                                                if (reason in currentEvent.reasons) currentEvent.reasons - reason
+                                                else currentEvent.reasons + reason
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    is Event.Danger -> {
+                        Text(
+                            text = "O que ocorreu na região marcada?",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            DangerReason.values.forEach { reason ->
+                                SylphChip.Small(
+                                    text = reason.label,
+                                    selected = reason in currentEvent.reasons,
+                                    onClick = {
+                                        event = currentEvent.copy(
+                                            reasons = run {
+                                                if (reason in currentEvent.reasons) currentEvent.reasons - reason
+                                                else currentEvent.reasons + reason
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Quem presenciou/vivenciou isso?",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            SylphChip.Primary(
+                                text = "Eu",
+                                selected = currentEvent.victim == DangerVictim.User,
+                                onClick = { event = currentEvent.copy(victim = DangerVictim.User) },
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            SylphChip.Primary(
+                                text = "Outra pessoa",
+                                selected = currentEvent.victim == DangerVictim.OtherPerson,
                                 onClick = {
-                                    event = currentEvent.copy(
-                                        reasons = run {
-                                            if (reason in currentEvent.reasons) currentEvent.reasons - reason
-                                            else currentEvent.reasons + reason
-                                        }
-                                    )
-                                }
+                                    event = currentEvent.copy(victim = DangerVictim.OtherPerson)
+                                },
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    null -> Unit
+                }
 
-                    Text(
-                        text = "Quem presenciou/vivenciou isso?",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        SylphChip.Primary(
-                            text = "Eu",
-                            selected = currentEvent.victim == DangerVictim.User,
-                            onClick = { event = currentEvent.copy(victim = DangerVictim.User) },
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        SylphChip.Primary(
-                            text = "Outra pessoa",
-                            selected = currentEvent.victim == DangerVictim.OtherPerson,
-                            onClick = {
-                                event = currentEvent.copy(victim = DangerVictim.OtherPerson)
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
+                event?.let { currentEvent ->
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
@@ -350,14 +399,12 @@ private fun EventSettings(
 
                     TextField(
                         value = currentEvent.note,
-                        onValueChange = { event = currentEvent.copy(note = it) },
+                        onValueChange = { event = currentEvent.update(note = it) },
                         placeholder = { Text(text = "Informações adicionais") },
                         maxLines = 5,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-
-                null -> Unit
             }
         }
     }
