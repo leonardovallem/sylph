@@ -13,4 +13,11 @@ object SylphChipDefaults {
         container: Color = MaterialTheme.colorScheme.primary,
         border: Color = MaterialTheme.colorScheme.outlineVariant,
     ) = SylphChipColors(content, container, border)
+
+    @Composable
+    fun smallColors(
+        content: Color = MaterialTheme.colorScheme.onTertiary,
+        container: Color = MaterialTheme.colorScheme.tertiary,
+        border: Color = MaterialTheme.colorScheme.outlineVariant,
+    ) = SylphChipColors(content, container, border)
 }

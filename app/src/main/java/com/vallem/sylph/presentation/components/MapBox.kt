@@ -24,14 +24,15 @@ import com.vallem.sylph.R
 import com.vallem.sylph.map.MapState
 import com.vallem.sylph.map.rememberMapState
 import com.vallem.sylph.util.extensions.getDrawable
+import com.vallem.sylph.util.falsyCallback
 
 @Composable
 fun MapBox(
     state: MapState,
     accessToken: String,
     modifier: Modifier = Modifier,
-    onClick: (Point) -> Boolean = { false },
-    onLongClick: (Point) -> Boolean = { false },
+    onClick: (Point) -> Boolean = falsyCallback {},
+    onLongClick: (Point) -> Boolean = falsyCallback {},
 ) {
     val isDarkMode = isSystemInDarkTheme()
 

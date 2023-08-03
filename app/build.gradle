@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace 'com.vallem.sylph'
-    compileSdk 33
+    compileSdk 34
 
     buildFeatures {
         buildConfig true
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId "com.vallem.sylph"
         minSdk 28
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -62,11 +62,11 @@ android {
 ext {
     destinations_version = "1.8.36-beta"
     hilt_version = "2.44"
+    accompanist_version = "0.31.6-rc"
 }
 
 dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.1'
-    def accompanistVersion = "0.30.0"
 
     implementation 'com.mapbox.maps:android:10.15.0'
 
@@ -74,8 +74,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
 
-    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
-    implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanist_version")
+    implementation("com.google.accompanist:accompanist-permissions:$accompanist_version")
 
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
     implementation "com.google.dagger:hilt-android:$hilt_version"
@@ -94,6 +94,7 @@ dependencies {
     implementation platform('androidx.compose:compose-bom:2023.03.00')
     androidTestImplementation platform('androidx.compose:compose-bom:2023.03.00')
 
+    implementation 'androidx.compose.foundation:foundation:1.5.0-rc01'
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.material:material-icons-extended'
     implementation 'androidx.compose.ui:ui'

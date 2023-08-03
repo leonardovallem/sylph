@@ -20,6 +20,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
+import com.vallem.sylph.util.extensions.hasPermission
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
@@ -57,7 +58,10 @@ class LocationProvider internal constructor(
             }
         }
 
-        manager.registerGnssStatusCallback(callback, null)
+        if (context.hasPermission(permission.ACCESS_FINE_LOCATION)) {
+            manager.registerGnssStatusCallback(callback, null)
+        }
+
         awaitClose { manager.unregisterGnssStatusCallback(callback) }
     }
 
@@ -71,8 +75,10 @@ class LocationProvider internal constructor(
             }
         }
 
-        client.lastLocation.await()?.let { send(it) }
-        locationRequests.forEach { client.requestLocationUpdates(it, callback, null) }
+        if (context.hasPermission(permission.ACCESS_FINE_LOCATION)) {
+            client.lastLocation.await()?.let { send(it) }
+            locationRequests.forEach { client.requestLocationUpdates(it, callback, null) }
+        }
 
         awaitClose { client.removeLocationUpdates(callback) }
     }

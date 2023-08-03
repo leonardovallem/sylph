@@ -31,7 +31,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,7 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
@@ -59,15 +57,16 @@ import com.vallem.sylph.presentation.Routes
 import com.vallem.sylph.presentation.components.MapBox
 import com.vallem.sylph.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.presentation.model.HomeShortcut
+import com.vallem.sylph.presentation.theme.ColorSystemBars
 import com.vallem.sylph.util.PointWrapper
 import com.vallem.sylph.util.extensions.point
+import com.vallem.sylph.util.truthyCallback
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Destination(route = Routes.Screen.Home)
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hiltViewModel()) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val systemUiController = rememberSystemUiController()
     val locationProvider = rememberLocationProvider()
 
     val location by locationProvider.location.collectAsState(initial = null)
@@ -81,12 +80,7 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
         // check if resultCode == RESULT_OK to perform an action if the location was or was not enabled
     }
 
-    SideEffect {
-        systemUiController.run {
-            setStatusBarColor(color = TransFlagColors.Pink, darkIcons = true)
-            setNavigationBarColor(color = TransFlagColors.Blue, darkIcons = true)
-        }
-    }
+    ColorSystemBars()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -184,9 +178,8 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
             MapBox(
                 state = mapState,
                 accessToken = BuildConfig.MAP_BOX_API_TOKEN,
-                onLongClick = {
+                onLongClick = truthyCallback {
                     navigator.navigate(AddEventScreenDestination(PointWrapper(it)))
-                    true
                 },
                 modifier = Modifier
                     .padding(12.dp)

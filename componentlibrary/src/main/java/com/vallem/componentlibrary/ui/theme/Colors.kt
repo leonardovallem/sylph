@@ -1,6 +1,7 @@
 package com.vallem.componentlibrary.ui.theme
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -188,13 +190,29 @@ fun ColorPalette(
     }
 }
 
-object ZoneEventColors {
-    val Danger = Color(0xFFEF3054)
-    val DangerSelected = Color(0xFFF46781)
+val MaterialTheme.zoneEventColors: ZoneEventColors
+    @Composable get() = when {
+        isSystemInDarkTheme() -> ZoneEventColors(
+            danger = Color(0xFF7B0828),
+            dangerSelected = Color(0xFFEF271B),
+            safety = Color(0xFF0B6E4F),
+            safetySelected = Color(0xFF16DF9F)
+        )
 
-    val Safety = Color(0xFF7DDF64)
-    val SafetySelected = Color(0xFF9BE788)
-}
+        else -> ZoneEventColors(
+            danger = Color(0xFFEF271B),
+            dangerSelected = Color(0xFF7B0828),
+            safety = Color(0xFF16DF9F),
+            safetySelected = Color(0xFF0B6E4F)
+        )
+    }
+
+class ZoneEventColors(
+    val danger: Color = Color(0xFFEF271B),
+    val dangerSelected: Color = Color(0xFF7B0828),
+    val safety: Color = Color(0xFF0B6E4F),
+    val safetySelected: Color = Color(0xFF16DF9F)
+)
 
 object TransFlagColors {
     val Blue = Color(0xFF5BCEFA)
