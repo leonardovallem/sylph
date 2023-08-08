@@ -1,7 +1,6 @@
 package com.vallem.componentlibrary.ui.button
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SylphFilledButton(
     label: String,
@@ -41,7 +39,7 @@ fun SylphFilledButton(
             label = "SylphFilledButtonAnimatedContent",
             contentAlignment = Alignment.Center
         ) {
-            if (isLoading) CircularProgressIndicator()
+            if (it) CircularProgressIndicator()
             else Text(text = label)
         }
     }
