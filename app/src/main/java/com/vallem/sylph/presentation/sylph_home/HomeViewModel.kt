@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.mapbox.android.core.location.LocationEngine
 import com.vallem.sylph.data.datastore.AppSettings
 import com.vallem.sylph.util.extensions.mapCenter
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +16,6 @@ import kotlinx.coroutines.launch
 class HomeViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     val dataStore: DataStore<AppSettings>,
-    val locationEngine: LocationEngine,
 ) : ViewModel() {
     val currentUser: FirebaseUser?
         get() = auth.currentUser

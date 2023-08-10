@@ -25,7 +25,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,7 +50,6 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphBottomBar
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
-import com.vallem.componentlibrary.ui.drawer.SylphNavigationDrawer
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.sylph.BuildConfig
@@ -59,8 +57,10 @@ import com.vallem.sylph.map.rememberLocationProvider
 import com.vallem.sylph.map.rememberMapState
 import com.vallem.sylph.presentation.Routes
 import com.vallem.sylph.presentation.components.MapBox
+import com.vallem.sylph.presentation.components.NavigationDrawerWrapper
 import com.vallem.sylph.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.presentation.model.HomeShortcut
+import com.vallem.sylph.presentation.model.NavigationShortcut
 import com.vallem.sylph.presentation.theme.ColorSystemBars
 import com.vallem.sylph.util.PointWrapper
 import com.vallem.sylph.util.extensions.point
@@ -94,15 +94,11 @@ fun HomeScreen(navigator: DestinationsNavigator, viewModel: HomeViewModel = hilt
         }
     }
 
-    ModalNavigationDrawer(
+    NavigationDrawerWrapper(
         drawerState = drawerState,
-        gesturesEnabled = drawerState.isOpen,
-        drawerContent = {
-            SylphNavigationDrawer(
-                userInfo = viewModel.currentUser?.displayName?.let { UserInfo(it, null) },
-                shortCuts = emptySet()
-            )
-        }
+        userInfo = viewModel.currentUser?.displayName?.let { UserInfo(it, null) },
+        navigator = navigator,
+        selectedShortcut = NavigationShortcut.Map,
     ) {
         Scaffold(
             topBar = {
