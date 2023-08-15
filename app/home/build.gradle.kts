@@ -3,19 +3,31 @@ import com.vallem.sylph.build_configuration.SylphDependencies
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
     id("com.google.devtools.ksp") version "1.8.10-1.0.9"
 }
 
+ksp {
+    arg("compose-destinations.mode", "destinations")
+    arg("compose-destinations.moduleName", "home")
+}
+
 android {
-    namespace = "com.vallem.componentlibrary"
-    compileSdk = 34
+    namespace = "com.vallem.sylph.home"
+    compileSdk = 33
 
     defaultConfig {
         minSdk = 28
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
+        consumerProguardFiles("consumer-rules.pro")
+    }
+
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.3"
     }
 
     buildTypes {
@@ -34,41 +46,30 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
 }
 
 dependencies {
-    implementation(SylphDependencies.Libs.Android.Core)
+    implementation(project(":componentlibrary"))
+    implementation(project(":app:shared"))
+    implementation(project(":app:events"))
+
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)
-    implementation(SylphDependencies.Libs.Android.Compose.Activity)
     implementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
     implementation(SylphDependencies.Libs.Android.Compose.Material3)
     implementation(SylphDependencies.Libs.Android.Compose.MaterialIconsExtended)
-    implementation("androidx.compose.animation:animation:1.5.0-rc01")
-    implementation(SylphDependencies.Libs.Android.Compose.Ui)
-    implementation(SylphDependencies.Libs.Android.Compose.UiGraphics)
     implementation(SylphDependencies.Libs.Android.Compose.UiToolingPreview)
 
-    implementation(SylphDependencies.Libs.Android.Compose.Accompanist.SystemUiController)
+    implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
+    implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
+    implementation(SylphDependencies.Libs.ThirdParty.MapBox)
+
+    implementation(SylphDependencies.Libs.Android.DataStore)
+    implementation(SylphDependencies.Libs.Android.Hilt)
+    implementation(SylphDependencies.Libs.Android.Compose.HiltNavigation)
+    kapt(SylphDependencies.Libs.Android.HiltKapt)
 
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
-    testImplementation(SylphDependencies.Libs.ThirdParty.JUnit)
-    androidTestImplementation(SylphDependencies.Libs.Android.JUnit)
-    androidTestImplementation(SylphDependencies.Libs.Android.Espresso)
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
-    androidTestImplementation(SylphDependencies.Libs.Android.Compose.UiTestJUnit4)
-    debugImplementation(SylphDependencies.Libs.Android.Compose.UiTooling)
-    debugImplementation(SylphDependencies.Libs.Android.Compose.UiTestManifest)
 }

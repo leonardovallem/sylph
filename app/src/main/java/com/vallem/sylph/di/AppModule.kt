@@ -5,12 +5,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import com.google.firebase.auth.FirebaseAuth
-import com.mapbox.android.core.location.LocationEngine
-import com.mapbox.android.core.location.LocationEngineProvider
-import com.vallem.sylph.data.datastore.AppSettings
-import com.vallem.sylph.data.datastore.AppSettingsSerializer
-import com.vallem.sylph.data.repository.AuthRepositoryImpl
-import com.vallem.sylph.domain.repository.AuthRepository
+import com.vallem.sylph.shared.data.repository.AuthRepositoryImpl
+import com.vallem.sylph.shared.datastore.AppSettings
+import com.vallem.sylph.shared.datastore.AppSettingsSerializer
+import com.vallem.sylph.shared.domain.repository.AuthRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,8 +37,4 @@ object AppModule {
         ) {
             context.dataStoreFile("user_data.pb")
         }
-
-    @Provides
-    fun provideLocationEngine(@ApplicationContext context: Context): LocationEngine =
-        LocationEngineProvider.getBestLocationEngine(context)
 }

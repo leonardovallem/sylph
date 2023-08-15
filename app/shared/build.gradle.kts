@@ -1,4 +1,6 @@
 import com.vallem.sylph.build_configuration.SylphDependencies
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.library")
@@ -7,15 +9,24 @@ plugins {
 }
 
 android {
-    namespace = "com.vallem.componentlibrary"
-    compileSdk = 34
+    namespace = "com.vallem.sylph.shared"
+    compileSdk = 33
 
     defaultConfig {
         minSdk = 28
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
+        consumerProguardFiles("consumer-rules.pro")
+
+        val properties = Properties().apply {
+            load(FileInputStream(File(rootProject.rootDir, "local.properties")))
         }
+
+        buildConfigField(
+            "String",
+            "MAP_BOX_API_TOKEN",
+            "\"${properties.getProperty("MAP_BOX_API_TOKEN")}\""
+        )
     }
 
     buildTypes {
@@ -27,6 +38,15 @@ android {
             )
         }
     }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.3"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -34,41 +54,30 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
 }
 
 dependencies {
     implementation(SylphDependencies.Libs.Android.Core)
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)
-    implementation(SylphDependencies.Libs.Android.Compose.Activity)
     implementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
+    implementation(SylphDependencies.Libs.Android.Compose.UiTestJUnit4)
+    implementation(SylphDependencies.Libs.Android.Compose.Activity)
     implementation(SylphDependencies.Libs.Android.Compose.Material3)
     implementation(SylphDependencies.Libs.Android.Compose.MaterialIconsExtended)
-    implementation("androidx.compose.animation:animation:1.5.0-rc01")
-    implementation(SylphDependencies.Libs.Android.Compose.Ui)
-    implementation(SylphDependencies.Libs.Android.Compose.UiGraphics)
     implementation(SylphDependencies.Libs.Android.Compose.UiToolingPreview)
-
-    implementation(SylphDependencies.Libs.Android.Compose.Accompanist.SystemUiController)
-
+    implementation(SylphDependencies.Libs.Android.GmsLocation)
+    implementation(SylphDependencies.Libs.ThirdParty.MapBox)
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
+    implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
+    implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
-    testImplementation(SylphDependencies.Libs.ThirdParty.JUnit)
-    androidTestImplementation(SylphDependencies.Libs.Android.JUnit)
-    androidTestImplementation(SylphDependencies.Libs.Android.Espresso)
+    implementation(SylphDependencies.Libs.Kotlin.CoroutinesPlayServices)
+
+    implementation(SylphDependencies.Libs.Android.DataStore)
+    implementation(SylphDependencies.Libs.ThirdParty.Jackson)
+
+    implementation(project(":componentlibrary"))
+
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
-    androidTestImplementation(SylphDependencies.Libs.Android.Compose.UiTestJUnit4)
-    debugImplementation(SylphDependencies.Libs.Android.Compose.UiTooling)
-    debugImplementation(SylphDependencies.Libs.Android.Compose.UiTestManifest)
 }

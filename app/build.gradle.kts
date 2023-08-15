@@ -1,17 +1,29 @@
 import com.vallem.sylph.build_configuration.SylphDependencies
 
 plugins {
-    id("com.android.library")
+    id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp") version "1.8.10-1.0.9"
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.vallem.componentlibrary"
+    namespace = "com.vallem.sylph"
     compileSdk = 34
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
+        applicationId = "com.vallem.sylph"
         minSdk = 28
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -48,27 +60,26 @@ android {
 }
 
 dependencies {
+    implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
+    implementation(SylphDependencies.Libs.ThirdParty.Firebase.Analytics)
+    implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
+
+    implementation(SylphDependencies.Libs.Android.Hilt)
+    kapt(SylphDependencies.Libs.Android.HiltKapt)
+
+    implementation(SylphDependencies.Libs.Android.DataStore)
+
     implementation(SylphDependencies.Libs.Android.Core)
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)
     implementation(SylphDependencies.Libs.Android.Compose.Activity)
-    implementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
-    implementation(SylphDependencies.Libs.Android.Compose.Material3)
-    implementation(SylphDependencies.Libs.Android.Compose.MaterialIconsExtended)
-    implementation("androidx.compose.animation:animation:1.5.0-rc01")
-    implementation(SylphDependencies.Libs.Android.Compose.Ui)
-    implementation(SylphDependencies.Libs.Android.Compose.UiGraphics)
-    implementation(SylphDependencies.Libs.Android.Compose.UiToolingPreview)
-
-    implementation(SylphDependencies.Libs.Android.Compose.Accompanist.SystemUiController)
-
-    implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
-    ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
     testImplementation(SylphDependencies.Libs.ThirdParty.JUnit)
     androidTestImplementation(SylphDependencies.Libs.Android.JUnit)
     androidTestImplementation(SylphDependencies.Libs.Android.Espresso)
-    androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
     androidTestImplementation(SylphDependencies.Libs.Android.Compose.UiTestJUnit4)
-    debugImplementation(SylphDependencies.Libs.Android.Compose.UiTooling)
-    debugImplementation(SylphDependencies.Libs.Android.Compose.UiTestManifest)
+
+    implementation(project(":componentlibrary"))
+    implementation(project(":app:shared"))
+    implementation(project(":app:init"))
+    implementation(project(":app:navigation"))
 }
