@@ -68,6 +68,8 @@ dependencies {
     kapt(SylphDependencies.Libs.Android.HiltKapt)
 
     implementation(SylphDependencies.Libs.Android.DataStore)
+    implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
+    ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
     implementation(SylphDependencies.Libs.Android.Core)
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -54,11 +56,144 @@ import com.vallem.componentlibrary.ui.classes.pairWith
 import com.vallem.componentlibrary.ui.classes.toSylphIcon
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 
+object SylphTextField {
+    @Composable
+    fun SingleLine(
+        value: String,
+        onValueChange: (String) -> Unit,
+        modifier: Modifier = Modifier,
+        leadingIcon: SylphIcon? = null,
+        trailingIcon: SylphIcon? = null,
+        placeholder: String? = null,
+        helperText: String? = null,
+        state: SylphTextFieldState = SylphTextFieldState.Default,
+        visualTransformation: VisualTransformation = VisualTransformation.None,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+        keyboardActions: KeyboardActions = KeyboardActions.Default,
+    ) {
+        SylphTextField(
+            value = value,
+            onValueChange = onValueChange,
+            shape = CircleShape,
+            maxLines = 1,
+            modifier = modifier,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            placeholder = placeholder,
+            helperText = helperText,
+            state = state,
+            visualTransformation = visualTransformation,
+            interactionSource = interactionSource,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+        )
+    }
+
+    @Composable
+    fun MultiLine(
+        value: String,
+        onValueChange: (String) -> Unit,
+        maxLines: Int,
+        modifier: Modifier = Modifier,
+        leadingIcon: SylphIcon? = null,
+        trailingIcon: SylphIcon? = null,
+        placeholder: String? = null,
+        helperText: String? = null,
+        state: SylphTextFieldState = SylphTextFieldState.Default,
+        visualTransformation: VisualTransformation = VisualTransformation.None,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+        keyboardActions: KeyboardActions = KeyboardActions.Default,
+    ) {
+        if (maxLines == 1) SingleLine(
+            value,
+            onValueChange,
+            modifier,
+            leadingIcon,
+            trailingIcon,
+            placeholder,
+            helperText,
+            state,
+            visualTransformation,
+            interactionSource,
+            keyboardOptions,
+            keyboardActions
+        ) else SylphTextField(
+            value = value,
+            onValueChange = onValueChange,
+            shape = RoundedCornerShape(12.dp),
+            maxLines = maxLines,
+            modifier = modifier,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            placeholder = placeholder,
+            helperText = helperText,
+            state = state,
+            visualTransformation = visualTransformation,
+            interactionSource = interactionSource,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+        )
+    }
+
+    @Composable
+    fun Password(
+        value: String,
+        onValueChange: (String) -> Unit,
+        modifier: Modifier = Modifier,
+        leadingIcon: SylphIcon? = null,
+        placeholder: String? = null,
+        helperText: String? = null,
+        state: SylphTextFieldState = SylphTextFieldState.Default,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+        keyboardActions: KeyboardActions = KeyboardActions.Default,
+    ) {
+        val isFocused by interactionSource.collectIsFocusedAsState()
+        var currentVisualTransformation by remember {
+            mutableStateOf<VisualTransformation>(PasswordVisualTransformation())
+        }
+
+        SingleLine(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            state = state,
+            leadingIcon = leadingIcon,
+            trailingIcon = SylphIcon(
+                icon = with(Icons.Rounded) {
+                    if (currentVisualTransformation is PasswordVisualTransformation) Visibility
+                    else VisibilityOff
+                },
+                colors = MaterialTheme.colorScheme.run {
+                    onSurfaceVariant pairWith onSurfaceVariant
+                },
+                action = {
+                    currentVisualTransformation = when (currentVisualTransformation) {
+                        is PasswordVisualTransformation -> VisualTransformation.None
+                        else -> PasswordVisualTransformation()
+                    }
+                }
+            ).takeIf { isFocused },
+            visualTransformation = currentVisualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            interactionSource = interactionSource,
+            placeholder = placeholder,
+            helperText = helperText,
+        )
+    }
+}
+
 @Composable
-fun SylphTextField(
+private fun SylphTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    shape: Shape,
+    maxLines: Int,
     modifier: Modifier = Modifier,
+    singleLine: Boolean = maxLines == 1,
     leadingIcon: SylphIcon? = null,
     trailingIcon: SylphIcon? = null,
     placeholder: String? = null,
@@ -85,6 +220,8 @@ fun SylphTextField(
         visualTransformation = visualTransformation,
         interactionSource = interactionSource,
         modifier = modifier,
+        maxLines = maxLines,
+        singleLine = singleLine,
         textStyle = LocalTextStyle.current.merge(TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurfaceVariant)
     ) {
@@ -93,9 +230,9 @@ fun SylphTextField(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .clip(CircleShape)
+                        .clip(shape)
                         .background(state.backgroundColor)
-                        .border(2.dp, borderColor, CircleShape)
+                        .border(2.dp, borderColor, shape)
                         .width(maxWidth)
                         .heightIn(min = 56.dp)
                         .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -170,54 +307,6 @@ fun SylphTextField(
     }
 }
 
-@Composable
-fun SylphPasswordField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    leadingIcon: SylphIcon? = null,
-    placeholder: String? = null,
-    helperText: String? = null,
-    state: SylphTextFieldState = SylphTextFieldState.Default,
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-) {
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    var currentVisualTransformation by remember {
-        mutableStateOf<VisualTransformation>(PasswordVisualTransformation())
-    }
-
-    SylphTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        state = state,
-        leadingIcon = leadingIcon,
-        trailingIcon = SylphIcon(
-            icon = with(Icons.Rounded) {
-                if (currentVisualTransformation is PasswordVisualTransformation) Visibility
-                else VisibilityOff
-            },
-            colors = MaterialTheme.colorScheme.run {
-                onSurfaceVariant pairWith onSurfaceVariant
-            },
-            action = {
-                currentVisualTransformation = when (currentVisualTransformation) {
-                    is PasswordVisualTransformation -> VisualTransformation.None
-                    else -> PasswordVisualTransformation()
-                }
-            }
-        ).takeIf { isFocused },
-        visualTransformation = currentVisualTransformation,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        interactionSource = interactionSource,
-        placeholder = placeholder,
-        helperText = helperText,
-    )
-}
-
 @Preview
 @Composable
 private fun SylphTextFields() {
@@ -231,13 +320,13 @@ private fun SylphTextFields() {
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(24.dp),
         ) {
-            SylphTextField(
+            SylphTextField.SingleLine(
                 value = value,
                 onValueChange = { value = it },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            SylphTextField(
+            SylphTextField.SingleLine(
                 value = value,
                 onValueChange = { value = it },
                 leadingIcon = Icons.Rounded.Person.toSylphIcon(
@@ -247,11 +336,19 @@ private fun SylphTextFields() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            SylphTextField(
+            SylphTextField.SingleLine(
                 value = value,
                 onValueChange = { value = it },
                 trailingIcon = Icons.Rounded.Clear.toSylphIcon(),
                 helperText = "Warning",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            SylphTextField.MultiLine(
+                value = value,
+                onValueChange = { value = it },
+                placeholder = "Multilines",
+                maxLines = 3,
                 modifier = Modifier.fillMaxWidth()
             )
         }

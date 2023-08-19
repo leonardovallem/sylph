@@ -26,15 +26,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -53,8 +51,10 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.result.EmptyResultBackNavigator
 import com.ramcosta.composedestinations.result.ResultBackNavigator
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
+import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.componentlibrary.ui.chip.SylphChip
 import com.vallem.componentlibrary.ui.chip.SylphChipDefaults
+import com.vallem.componentlibrary.ui.input.SylphTextField
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
@@ -81,7 +81,7 @@ fun AddEventScreen(
     var currentPoint by rememberSaveable { mutableStateOf(point) }
     val mapState = rememberMapState(center = currentPoint?.value)
 
-    var mapExpanded by rememberSaveable { mutableStateOf(false) }
+    var mapExpanded by rememberSaveable { mutableStateOf(point == null) }
     var zoneType by rememberSaveable { mutableStateOf<ZoneType?>(null) }
 
     val mapHeightFraction by animateFloatAsState(
@@ -132,7 +132,10 @@ fun AddEventScreen(
                     state = mapState,
                     accessToken = BuildConfig.MAP_BOX_API_TOKEN,
                     modifier = Modifier.size(width = maxWidth, height = maxHeight),
-                    onClick = truthyCallback { currentPoint = PointWrapper(it) }
+                    onClick = truthyCallback {
+                        if (currentPoint == null) mapExpanded = false
+                        currentPoint = PointWrapper(it)
+                    }
                 )
 
                 IconButton(
@@ -156,21 +159,35 @@ fun AddEventScreen(
                 EventSettings(
                     point = point.value,
                     zoneType = zoneType,
-                    onZoneTypeChange = { zoneType = it }
+                    onZoneTypeChange = { zoneType = it },
+                    onConfirm = {
+                        // TODO add event to database
+                        navigator.navigateBack(result = true)
+                    }
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EventSettings(
     point: Point,
     zoneType: ZoneType?,
-    onZoneTypeChange: (ZoneType) -> Unit
+    onZoneTypeChange: (ZoneType) -> Unit,
+    onConfirm: (Event) -> Unit
 ) {
     var event by remember { mutableStateOf<Event?>(null) }
+    val validForm by remember {
+        derivedStateOf {
+            when (val currentEvent = event) {
+                is Event.Safety -> currentEvent.reasons.isNotEmpty()
+                is Event.Danger -> currentEvent.reasons.isNotEmpty() && currentEvent.victim != null
+                null -> false
+            }
+        }
+    }
 
     LaunchedEffect(zoneType) {
         event = when (zoneType) {
@@ -180,22 +197,17 @@ private fun EventSettings(
         }
     }
 
-    if (BuildConfig.DEBUG) Text(
-        text = "${point.latitude()} ${point.longitude()}",
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth()
-    )
-
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(24.dp)
+            .padding(horizontal = 24.dp)
     ) {
         Text(
             text = "A zona selecionada é",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         Row(
@@ -342,14 +354,23 @@ private fun EventSettings(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
 
-                    TextField(
+                    SylphTextField.MultiLine(
                         value = currentEvent.note,
                         onValueChange = { event = currentEvent.update(note = it) },
-                        placeholder = { Text(text = "Informações adicionais") },
+                        placeholder = "Informações adicionais",
                         maxLines = 5,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+
+                SylphButton.Elevated(
+                    label = "Salvar",
+                    enabled = validForm,
+                    onClick = { event?.let(onConfirm) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                )
             }
         }
     }

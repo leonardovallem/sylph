@@ -42,11 +42,10 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.ui.brand.SylphLogo
-import com.vallem.componentlibrary.ui.button.SylphFilledButton
+import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.componentlibrary.ui.button.SylphTextButton
 import com.vallem.componentlibrary.ui.classes.forIcons
 import com.vallem.componentlibrary.ui.classes.pairWith
-import com.vallem.componentlibrary.ui.input.SylphPasswordField
 import com.vallem.componentlibrary.ui.input.SylphTextField
 import com.vallem.componentlibrary.ui.input.SylphTextFieldState
 import com.vallem.componentlibrary.ui.input.errorIf
@@ -131,7 +130,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     targetState = viewModel.isRegister,
                     label = "NameField"
                 ) { isRegister ->
-                    if (isRegister) SylphTextField(
+                    if (isRegister) SylphTextField.SingleLine(
                         value = viewModel.name,
                         onValueChange = { viewModel.onEvent(LoginEvent.Update.Name(it)) },
                         placeholder = "Name",
@@ -145,7 +144,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     )
                 }
 
-                SylphTextField(
+                SylphTextField.SingleLine(
                     value = viewModel.email,
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Email(it)) },
                     placeholder = "Email",
@@ -158,7 +157,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                         .imePadding()
                 )
 
-                SylphPasswordField(
+                SylphTextField.Password(
                     value = viewModel.password,
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Password(it)) },
                     placeholder = "Password",
@@ -186,7 +185,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                 ) {
                     CircularProgressIndicator()
                 } else Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SylphFilledButton(
+                    SylphButton.Pill(
                         label = if (viewModel.isRegister) "Criar conta" else "Login",
                         enabled = viewModel.validInput,
                         isLoading = isButtonLoading,

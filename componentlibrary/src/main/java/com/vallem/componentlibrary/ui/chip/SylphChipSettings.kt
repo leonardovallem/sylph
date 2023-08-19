@@ -9,15 +9,15 @@ data class SylphChipColors(val content: Color, val container: Color, val border:
 object SylphChipDefaults {
     @Composable
     fun primaryColors(
-        content: Color = MaterialTheme.colorScheme.onPrimary,
-        container: Color = MaterialTheme.colorScheme.primary,
-        border: Color = MaterialTheme.colorScheme.outlineVariant,
+        content: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+        container: Color = MaterialTheme.colorScheme.primaryContainer,
+        border: Color = MaterialTheme.colorScheme.primary,
     ) = SylphChipColors(content, container, border)
 
     @Composable
     fun smallColors(
-        content: Color = MaterialTheme.colorScheme.onTertiary,
-        container: Color = MaterialTheme.colorScheme.tertiary,
-        border: Color = MaterialTheme.colorScheme.outlineVariant,
+        content: Color = MaterialTheme.colorScheme.onTertiaryContainer,
+        container: Color = MaterialTheme.colorScheme.tertiaryContainer,
+        border: Color = MaterialTheme.colorScheme.tertiary,
     ) = SylphChipColors(content, container, border)
 }
