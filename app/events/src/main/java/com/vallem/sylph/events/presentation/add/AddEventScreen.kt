@@ -63,7 +63,6 @@ import com.vallem.sylph.events.model.DangerReason
 import com.vallem.sylph.events.model.DangerVictim
 import com.vallem.sylph.events.model.Event
 import com.vallem.sylph.events.model.SafetyReason
-import com.vallem.sylph.events.model.ZoneType
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
@@ -82,7 +81,6 @@ fun AddEventScreen(
     val mapState = rememberMapState(center = currentPoint?.value)
 
     var mapExpanded by rememberSaveable { mutableStateOf(point == null) }
-    var zoneType by rememberSaveable { mutableStateOf<ZoneType?>(null) }
 
     val mapHeightFraction by animateFloatAsState(
         targetValue = if (mapExpanded) 1f else 0.25f,
@@ -158,8 +156,6 @@ fun AddEventScreen(
             currentPoint?.let { point ->
                 EventSettings(
                     point = point.value,
-                    zoneType = zoneType,
-                    onZoneTypeChange = { zoneType = it },
                     onConfirm = {
                         // TODO add event to database
                         navigator.navigateBack(result = true)
@@ -174,8 +170,6 @@ fun AddEventScreen(
 @Composable
 private fun EventSettings(
     point: Point,
-    zoneType: ZoneType?,
-    onZoneTypeChange: (ZoneType) -> Unit,
     onConfirm: (Event) -> Unit
 ) {
     var event by remember { mutableStateOf<Event?>(null) }
@@ -186,14 +180,6 @@ private fun EventSettings(
                 is Event.Danger -> currentEvent.reasons.isNotEmpty() && currentEvent.victim != null
                 null -> false
             }
-        }
-    }
-
-    LaunchedEffect(zoneType) {
-        event = when (zoneType) {
-            ZoneType.Safe -> Event.Safety.defaultFor(point)
-            ZoneType.Dangerous -> Event.Danger.defaultFor(point)
-            null -> null
         }
     }
 
@@ -216,7 +202,7 @@ private fun EventSettings(
         ) {
             SylphChip.Primary(
                 text = "Segura",
-                selected = zoneType == ZoneType.Safe,
+                selected = event is Event.Safety,
                 colors = SylphChipDefaults.primaryColors(
                     content = Color.White,
                     container = animateColorAsState(
@@ -225,13 +211,13 @@ private fun EventSettings(
                     ).value,
                     border = MaterialTheme.zoneEventColors.safetySelected
                 ),
-                onClick = { onZoneTypeChange(ZoneType.Safe) },
+                onClick = { event = Event.Safety.defaultFor(point) },
                 modifier = Modifier.weight(1f)
             )
 
             SylphChip.Primary(
                 text = "Perigosa",
-                selected = zoneType == ZoneType.Dangerous,
+                selected = event is Event.Danger,
                 colors = SylphChipDefaults.primaryColors(
                     content = Color.White,
                     container = animateColorAsState(
@@ -240,7 +226,7 @@ private fun EventSettings(
                     ).value,
                     border = MaterialTheme.zoneEventColors.dangerSelected
                 ),
-                onClick = { onZoneTypeChange(ZoneType.Dangerous) },
+                onClick = { event = Event.Danger.defaultFor(point) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -248,15 +234,14 @@ private fun EventSettings(
         Spacer(modifier = Modifier.height(16.dp))
 
         AnimatedContent(
-            targetState = zoneType,
+            targetState = event,
             label = "ZoneTypeFields",
             transitionSpec = { fadeIn() togetherWith fadeOut() }
-        ) { type ->
-            type  // TODO find a better way
+        ) { currentEvent ->
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                when (val currentEvent = event) {
+                when (currentEvent) {
                     is Event.Safety -> {
                         Text(
                             text = "O que traz segurança à região marcada?",
@@ -345,7 +330,7 @@ private fun EventSettings(
                     null -> Unit
                 }
 
-                event?.let { currentEvent ->
+                currentEvent?.let {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
