@@ -170,9 +170,9 @@ fun AddEventScreen(
 @Composable
 private fun EventSettings(
     point: Point,
-    onConfirm: (Event) -> Unit
+    onConfirm: (Event<*>) -> Unit
 ) {
-    var event by remember { mutableStateOf<Event?>(null) }
+    var event by remember { mutableStateOf<Event<*>?>(null) }
     val validForm by remember {
         derivedStateOf {
             when (val currentEvent = event) {

@@ -1,6 +1,10 @@
 package com.vallem.sylph.events.model
 
-enum class SafetyReason(val label: String) {
+interface Reason {
+    val label: String
+}
+
+enum class SafetyReason(override val label: String) : Reason {
     WellLit("Bem iluminado"),
     SecurityCameras("Câmeras de segurança"),
     WellGuard("Bem policiado"),
@@ -12,7 +16,7 @@ enum class SafetyReason(val label: String) {
     }
 }
 
-enum class DangerReason(val label: String) {
+enum class DangerReason(override val label: String) : Reason {
     Battery("Agressão"),
     SexualHarassment("Assédio sexual"),
     MoralHarassment("Assédio moral"),

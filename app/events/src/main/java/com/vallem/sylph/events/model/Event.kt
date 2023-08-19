@@ -3,12 +3,16 @@ package com.vallem.sylph.events.model
 import com.mapbox.geojson.Point
 import com.vallem.sylph.shared.map.model.PointWrapper
 
-sealed class Event(open val point: PointWrapper, open val note: String) {
+sealed class Event<R : Reason>(
+    open val point: PointWrapper,
+    open val reasons: Set<R>,
+    open val note: String
+) {
     data class Safety(
         override val point: PointWrapper,
-        val reasons: Set<SafetyReason>,
+        override val reasons: Set<SafetyReason>,
         override val note: String
-    ) : Event(point, note) {
+    ) : Event<SafetyReason>(point, reasons, note) {
         companion object {
             fun defaultFor(point: Point) = Safety(PointWrapper(point), emptySet(), "")
         }
@@ -16,10 +20,10 @@ sealed class Event(open val point: PointWrapper, open val note: String) {
 
     data class Danger(
         override val point: PointWrapper,
-        val reasons: Set<DangerReason>,
+        override val reasons: Set<DangerReason>,
         val victim: DangerVictim?,
         override val note: String
-    ) : Event(point, note) {
+    ) : Event<DangerReason>(point, reasons, note) {
         companion object {
             fun defaultFor(point: Point) = Danger(PointWrapper(point), emptySet(), null, "")
         }
