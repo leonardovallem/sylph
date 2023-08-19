@@ -1,6 +1,7 @@
 package com.vallem.sylph.events.presentation.add
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
@@ -185,178 +186,187 @@ private fun EventSettings(
 
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
+        modifier = Modifier.padding(horizontal = 24.dp)
     ) {
-        Text(
-            text = "A zona selecionada é",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            SylphChip.Primary(
-                text = "Segura",
-                selected = event is Event.Safety,
-                colors = SylphChipDefaults.primaryColors(
-                    content = Color.White,
-                    container = animateColorAsState(
-                        targetValue = MaterialTheme.zoneEventColors.safety,
-                        label = "SafeZoneColor"
-                    ).value,
-                    border = MaterialTheme.zoneEventColors.safetySelected
-                ),
-                onClick = { event = Event.Safety.defaultFor(point) },
-                modifier = Modifier.weight(1f)
+            Text(
+                text = "A zona selecionada é",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(top = 8.dp)
             )
 
-            SylphChip.Primary(
-                text = "Perigosa",
-                selected = event is Event.Danger,
-                colors = SylphChipDefaults.primaryColors(
-                    content = Color.White,
-                    container = animateColorAsState(
-                        targetValue = MaterialTheme.zoneEventColors.danger,
-                        label = "DangerousZoneColor"
-                    ).value,
-                    border = MaterialTheme.zoneEventColors.dangerSelected
-                ),
-                onClick = { event = Event.Danger.defaultFor(point) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        AnimatedContent(
-            targetState = event,
-            label = "ZoneTypeFields",
-            transitionSpec = { fadeIn() togetherWith fadeOut() }
-        ) { currentEvent ->
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                when (currentEvent) {
-                    is Event.Safety -> {
-                        Text(
-                            text = "O que traz segurança à região marcada?",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+                SylphChip.Primary(
+                    text = "Segura",
+                    selected = event is Event.Safety,
+                    colors = SylphChipDefaults.primaryColors(
+                        content = Color.White,
+                        container = animateColorAsState(
+                            targetValue = MaterialTheme.zoneEventColors.safety,
+                            label = "SafeZoneColor"
+                        ).value,
+                        border = MaterialTheme.zoneEventColors.safetySelected
+                    ),
+                    onClick = { event = Event.Safety.defaultFor(point) },
+                    modifier = Modifier.weight(1f)
+                )
 
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            SafetyReason.values.forEach { reason ->
-                                SylphChip.Small(
-                                    text = reason.label,
-                                    selected = reason in currentEvent.reasons,
+                SylphChip.Primary(
+                    text = "Perigosa",
+                    selected = event is Event.Danger,
+                    colors = SylphChipDefaults.primaryColors(
+                        content = Color.White,
+                        container = animateColorAsState(
+                            targetValue = MaterialTheme.zoneEventColors.danger,
+                            label = "DangerousZoneColor"
+                        ).value,
+                        border = MaterialTheme.zoneEventColors.dangerSelected
+                    ),
+                    onClick = { event = Event.Danger.defaultFor(point) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AnimatedContent(
+                targetState = event,
+                label = "ZoneTypeFields",
+                transitionSpec = { fadeIn() togetherWith fadeOut() }
+            ) { currentEvent ->
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    when (currentEvent) {
+                        is Event.Safety -> {
+                            Text(
+                                text = "O que traz segurança à região marcada?",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                SafetyReason.values.forEach { reason ->
+                                    SylphChip.Small(
+                                        text = reason.label,
+                                        selected = reason in currentEvent.reasons,
+                                        onClick = {
+                                            event = currentEvent.copy(
+                                                reasons = run {
+                                                    if (reason in currentEvent.reasons) currentEvent.reasons - reason
+                                                    else currentEvent.reasons + reason
+                                                }
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        is Event.Danger -> {
+                            Text(
+                                text = "O que ocorreu na região marcada?",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                DangerReason.values.forEach { reason ->
+                                    SylphChip.Small(
+                                        text = reason.label,
+                                        selected = reason in currentEvent.reasons,
+                                        onClick = {
+                                            event = currentEvent.copy(
+                                                reasons = run {
+                                                    if (reason in currentEvent.reasons) currentEvent.reasons - reason
+                                                    else currentEvent.reasons + reason
+                                                }
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "Quem presenciou/vivenciou isso?",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                SylphChip.Primary(
+                                    text = "Eu",
+                                    selected = currentEvent.victim == DangerVictim.User,
                                     onClick = {
-                                        event = currentEvent.copy(
-                                            reasons = run {
-                                                if (reason in currentEvent.reasons) currentEvent.reasons - reason
-                                                else currentEvent.reasons + reason
-                                            }
-                                        )
-                                    }
+                                        event = currentEvent.copy(victim = DangerVictim.User)
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                SylphChip.Primary(
+                                    text = "Outra pessoa",
+                                    selected = currentEvent.victim == DangerVictim.OtherPerson,
+                                    onClick = {
+                                        event = currentEvent.copy(victim = DangerVictim.OtherPerson)
+                                    },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                         }
+
+                        null -> Unit
                     }
 
-                    is Event.Danger -> {
-                        Text(
-                            text = "O que ocorreu na região marcada?",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            DangerReason.values.forEach { reason ->
-                                SylphChip.Small(
-                                    text = reason.label,
-                                    selected = reason in currentEvent.reasons,
-                                    onClick = {
-                                        event = currentEvent.copy(
-                                            reasons = run {
-                                                if (reason in currentEvent.reasons) currentEvent.reasons - reason
-                                                else currentEvent.reasons + reason
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        }
-
+                    currentEvent?.let {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "Quem presenciou/vivenciou isso?",
+                            text = "Deseja acrescentar mais alguma coisa?",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        SylphTextField.MultiLine(
+                            value = currentEvent.note,
+                            onValueChange = { event = currentEvent.update(note = it) },
+                            placeholder = "Informações adicionais",
+                            maxLines = 5,
                             modifier = Modifier.fillMaxWidth()
-                        ) {
-                            SylphChip.Primary(
-                                text = "Eu",
-                                selected = currentEvent.victim == DangerVictim.User,
-                                onClick = { event = currentEvent.copy(victim = DangerVictim.User) },
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            SylphChip.Primary(
-                                text = "Outra pessoa",
-                                selected = currentEvent.victim == DangerVictim.OtherPerson,
-                                onClick = {
-                                    event = currentEvent.copy(victim = DangerVictim.OtherPerson)
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                        )
                     }
-
-                    null -> Unit
                 }
-
-                currentEvent?.let {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Deseja acrescentar mais alguma coisa?",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    SylphTextField.MultiLine(
-                        value = currentEvent.note,
-                        onValueChange = { event = currentEvent.update(note = it) },
-                        placeholder = "Informações adicionais",
-                        maxLines = 5,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                SylphButton.Elevated(
-                    label = "Salvar",
-                    enabled = validForm,
-                    onClick = { event?.let(onConfirm) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                )
             }
+        }
+
+        AnimatedVisibility(visible = event != null) {
+            SylphButton.Elevated(
+                label = "Salvar",
+                enabled = validForm,
+                onClick = { event?.let(onConfirm) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            )
         }
     }
 }
