@@ -334,7 +334,7 @@ private fun EventSettings(
                             }
                         }
 
-                        null -> Unit
+                        null -> Spacer(modifier = Modifier.fillMaxWidth())
                     }
 
                     currentEvent?.let {
