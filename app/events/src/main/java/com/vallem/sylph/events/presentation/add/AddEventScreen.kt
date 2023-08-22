@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -31,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,11 +45,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.mapbox.geojson.Point
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.result.EmptyResultBackNavigator
@@ -60,23 +65,28 @@ import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
-import com.vallem.sylph.events.model.DangerReason
-import com.vallem.sylph.events.model.DangerVictim
-import com.vallem.sylph.events.model.Event
-import com.vallem.sylph.events.model.SafetyReason
 import com.vallem.sylph.shared.BuildConfig
+import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.domain.model.event.DangerReason
+import com.vallem.sylph.shared.domain.model.event.DangerVictim
+import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
 import com.vallem.sylph.shared.map.util.rememberMapState
+import com.vallem.sylph.shared.presentation.components.FlagLoading
 import com.vallem.sylph.shared.util.truthyCallback
 
 @Destination(route = com.vallem.sylph.shared.Routes.Screen.AddEvent)
 @Composable
 fun AddEventScreen(
     point: PointWrapper?,
-    navigator: ResultBackNavigator<Boolean>
+    navigator: ResultBackNavigator<Boolean>,
+    viewModel: AddEventViewModel = hiltViewModel()
 ) {
     val isPreview = LocalInspectionMode.current
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var currentPoint by rememberSaveable { mutableStateOf(point) }
     val mapState = rememberMapState(center = currentPoint?.value)
@@ -96,7 +106,21 @@ fun AddEventScreen(
         }
     }
 
+    LaunchedEffect(viewModel.eventSaveResult) {
+        when (viewModel.eventSaveResult) {
+            is Result.Success -> {
+                navigator.navigateBack(result = true)
+                snackbarHostState.showSnackbar(message = "Evento salvo com sucesso!")
+            }
+
+            is Result.Failure -> snackbarHostState.showSnackbar(message = "Erro ao salvar evento")
+
+            else -> Unit
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             SylphTopBar(
                 title = "Adicionar evento",
@@ -157,10 +181,8 @@ fun AddEventScreen(
             currentPoint?.let { point ->
                 EventSettings(
                     point = point.value,
-                    onConfirm = {
-                        // TODO add event to database
-                        navigator.navigateBack(result = true)
-                    }
+                    isLoading = viewModel.eventSaveResult == Result.Loading,
+                    onConfirm = viewModel::saveEvent
                 )
             }
         }
@@ -171,6 +193,7 @@ fun AddEventScreen(
 @Composable
 private fun EventSettings(
     point: Point,
+    isLoading: Boolean,
     onConfirm: (Event<*>) -> Unit
 ) {
     var event by remember { mutableStateOf<Event<*>?>(null) }
@@ -359,14 +382,24 @@ private fun EventSettings(
         }
 
         AnimatedVisibility(visible = event != null) {
-            SylphButton.Elevated(
-                label = "Salvar",
-                enabled = validForm,
-                onClick = { event?.let(onConfirm) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-            )
+            AnimatedContent(
+                targetState = isLoading,
+                label = "ButtonLoadingTransform",
+                modifier = Modifier.padding(vertical = 16.dp)
+            ) {
+                if (it) FlagLoading(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .fillMaxWidth()
+                        .height(48.dp)
+                )
+                else SylphButton.Elevated(
+                    label = "Salvar",
+                    enabled = validForm,
+                    onClick = { event?.let(onConfirm) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

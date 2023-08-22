@@ -1,4 +1,4 @@
-package com.vallem.sylph.events.model
+package com.vallem.sylph.shared.domain.model.event
 
 import com.mapbox.geojson.Point
 import com.vallem.sylph.shared.map.model.PointWrapper

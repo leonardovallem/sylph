@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.vallem.sylph.shared.datastore.AppSettings
+import com.vallem.sylph.shared.data.datastore.AppSettings
 import com.vallem.sylph.shared.extensions.mapCenter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

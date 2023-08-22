@@ -1,4 +1,4 @@
-package com.vallem.sylph.events.presentation.user
+package com.vallem.sylph.events.presentation.add
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.internal.api.FirebaseNoSignedInUserException
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
@@ -18,32 +17,31 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @HiltViewModel
-class UserEventsViewModel @Inject constructor(
+class AddEventViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val eventsRepository: EventsRepository,
+    private val eventsRepository: EventsRepository
 ) : ViewModel() {
-    var eventsQueryResult by mutableStateOf<Result<List<Event<*>>>>(Result.Loading)
+    var eventSaveResult by mutableStateOf<Result<Unit>?>(null)
 
-    val currentUser: FirebaseUser?
-        get() = auth.currentUser
-
-    init {
-        retrieveEvents()
-    }
-
-    fun retrieveEvents() {
-        if (currentUser == null) {
-            eventsQueryResult = Result.Failure(
+    fun saveEvent(event: Event<*>) {
+        if (auth.currentUser == null) {
+            eventSaveResult = Result.Failure(
                 FirebaseNoSignedInUserException("Current user is null")
             )
 
             return
         }
 
-        eventsQueryResult = Result.Loading
+        eventSaveResult = Result.Loading
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                eventsQueryResult = eventsRepository.retrieveUserEvents(currentUser!!.uid)
+                eventsRepository.saveEvent(auth.currentUser?.uid.orEmpty(), event)
+                    .onSuccess {
+                        eventSaveResult = Result.Success(Unit)
+                    }
+                    .onFailure {
+                        eventSaveResult = Result.Failure(it)
+                    }
             }
         }
     }

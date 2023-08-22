@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.vallem.sylph.shared"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 28
@@ -26,6 +26,12 @@ android {
             "String",
             "MAP_BOX_API_TOKEN",
             "\"${properties.getProperty("MAP_BOX_API_TOKEN")}\""
+        )
+
+        buildConfigField(
+            "String",
+            "COGNITO_IDENTITY_ID",
+            "\"${properties.getProperty("COGNITO_IDENTITY_ID")}\""
         )
     }
 
@@ -73,6 +79,10 @@ dependencies {
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
     implementation(SylphDependencies.Libs.Kotlin.CoroutinesPlayServices)
+    implementation(SylphDependencies.Libs.ThirdParty.AWS.Core)
+    implementation(SylphDependencies.Libs.ThirdParty.AWS.DynamoDb)
+    implementation(SylphDependencies.Libs.ThirdParty.AWS.DynamoDbDocument)
+    implementation(SylphDependencies.Libs.ThirdParty.TSID)
 
     implementation(SylphDependencies.Libs.Android.DataStore)
     implementation(SylphDependencies.Libs.ThirdParty.Jackson)

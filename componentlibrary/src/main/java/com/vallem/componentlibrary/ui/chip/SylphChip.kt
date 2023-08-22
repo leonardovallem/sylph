@@ -62,7 +62,7 @@ object SylphChip {
     ) {
         val borderColor by animateColorAsState(
             targetValue = if (selected) colors.border else colors.container,
-            label = "PrimaryBorderColor"
+            label = "SmallBorderColor"
         )
 
         Text(
@@ -80,6 +80,37 @@ object SylphChip {
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+    }
+
+    @Composable
+    fun Tiny(
+        text: String,
+        modifier: Modifier = Modifier,
+        onClick: (() -> Unit)? = null,
+        selected: Boolean = false,
+        colors: SylphChipColors = SylphChipDefaults.smallColors(),
+    ) {
+        val borderColor by animateColorAsState(
+            targetValue = if (selected) colors.border else colors.container,
+            label = "TinyBorderColor"
+        )
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.content,
+            textAlign = TextAlign.Center,
+            modifier = modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(enabled = onClick != null) { onClick?.invoke() }
+                .background(colors.container)
+                .border(
+                    width = 2.dp,
+                    color = borderColor,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }
 }
@@ -110,6 +141,21 @@ private fun SmallSylphChipPreview() {
             SylphChip.Small(text = "No Action")
             SylphChip.Small(text = "With Action", onClick = {})
             SylphChip.Small(text = "Selected", onClick = {}, selected = true)
+        }
+    }
+}
+
+@Preview(name = "Tiny")
+@Composable
+private fun TinySylphChipPreview() {
+    SylphTheme {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SylphChip.Tiny(text = "No Action")
+            SylphChip.Tiny(text = "With Action", onClick = {})
+            SylphChip.Tiny(text = "Selected", onClick = {}, selected = true)
         }
     }
 }

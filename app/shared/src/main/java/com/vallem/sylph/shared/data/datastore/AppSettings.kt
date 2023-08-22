@@ -1,4 +1,4 @@
-package com.vallem.sylph.shared.datastore
+package com.vallem.sylph.shared.data.datastore
 
 import com.vallem.sylph.shared.map.model.MapCenter
 

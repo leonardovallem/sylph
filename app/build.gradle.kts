@@ -13,10 +13,6 @@ android {
     namespace = "com.vallem.sylph"
     compileSdk = 34
 
-    buildFeatures {
-        buildConfig = true
-    }
-
     defaultConfig {
         applicationId = "com.vallem.sylph"
         minSdk = 28
@@ -63,6 +59,7 @@ dependencies {
     implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
     implementation(SylphDependencies.Libs.ThirdParty.Firebase.Analytics)
     implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
+    implementation(SylphDependencies.Libs.ThirdParty.AWS.DynamoDb)
 
     implementation(SylphDependencies.Libs.Android.Hilt)
     kapt(SylphDependencies.Libs.Android.HiltKapt)
