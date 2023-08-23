@@ -1,13 +1,17 @@
 package com.vallem.sylph.events.presentation.detail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,18 +27,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush.Companion.verticalGradient
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.mapbox.geojson.Point
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.spec.DestinationStyleBottomSheet
 import com.vallem.componentlibrary.ui.bottomsheet.SylphBottomSheet
 import com.vallem.componentlibrary.ui.chip.SylphChip
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
+import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.event.DangerEvent
 import com.vallem.sylph.shared.domain.model.event.DangerReason
@@ -43,53 +49,87 @@ import com.vallem.sylph.shared.domain.model.event.Event
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.map.model.PointWrapper
+import com.vallem.sylph.shared.map.presentation.MapLocation
 
 @Destination(route = Routes.BottomSheet.EventDetails, style = DestinationStyleBottomSheet::class)
 @Composable
 fun EventDetailsBottomSheet(event: Event) {
     val sortedReasons = remember { event.reasons.sortedBy { it.label.length } }
 
-    SylphBottomSheet(
-        nestedScrollState = rememberNestedScrollInteropConnection()
-    ) {
+    SylphBottomSheet { _ ->
         Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 16.dp)
+            modifier = Modifier.verticalScroll(rememberScrollState())
         ) {
-            Icon(
-                imageVector = with(Icons.Rounded) {
-                    when (event.type) {
-                        Event.Type.Safety -> SentimentSatisfied
-                        Event.Type.Danger -> SentimentDissatisfied
-                    }
-                },
-                tint = with(MaterialTheme.zoneEventColors) {
-                    when (event.type) {
-                        Event.Type.Safety -> safetySelected
-                        Event.Type.Danger -> dangerSelected
-                    }
-                },
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-
-            Text(
-                text = when (event.type) {
-                    Event.Type.Safety -> "Local seguro"
-                    Event.Type.Danger -> "Local perigoso"
-                },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally)
-                    .padding(12.dp)
-            )
+                    .height(200.dp)
+                    .padding(bottom = 12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.125f),
+                                    Color.Black.copy(alpha = 0.25f),
+                                    Color.Black.copy(alpha = 0.375f),
+                                    Color.Black.copy(alpha = 0.5f),
+                                    Color.Black.copy(alpha = 0.625f),
+                                    Color.Black.copy(alpha = 0.75f),
+                                ),
+                            )
+                        )
+                        .size(width = maxWidth, height = maxHeight)
+                        .zIndex(1f)
+                )
+
+                MapLocation(
+                    point = event.point.value,
+                    accessToken = BuildConfig.MAP_BOX_API_TOKEN,
+                    modifier = Modifier
+                        .size(width = maxWidth, height = maxHeight)
+                        .zIndex(0f)
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .width(maxWidth)
+                        .align(Alignment.BottomCenter)
+                        .zIndex(2f)
+                ) {
+                    Icon(
+                        imageVector = with(Icons.Rounded) {
+                            when (event.type) {
+                                Event.Type.Safety -> SentimentSatisfied
+                                Event.Type.Danger -> SentimentDissatisfied
+                            }
+                        },
+                        tint = with(MaterialTheme.zoneEventColors) {
+                            when (event.type) {
+                                Event.Type.Safety -> safety
+                                Event.Type.Danger -> danger
+                            }
+                        },
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp)
+                    )
+
+                    Text(
+                        text = when (event.type) {
+                            Event.Type.Safety -> "Local seguro"
+                            Event.Type.Danger -> "Local perigoso"
+                        },
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFC0C0C0),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
             Text(
                 text = "Motivos",
@@ -129,6 +169,8 @@ fun EventDetailsBottomSheet(event: Event) {
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

@@ -156,7 +156,7 @@ private fun UserEventsScreenContent(
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
-                    repeat(5) {
+                    repeat(8) {
                         FlagLoading(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
