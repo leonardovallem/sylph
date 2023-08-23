@@ -2,38 +2,42 @@ package com.vallem.sylph.shared.data.mapper
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.mapbox.geojson.Point
+import com.vallem.sylph.shared.domain.model.event.DangerEvent
 import com.vallem.sylph.shared.domain.model.event.DangerReason
 import com.vallem.sylph.shared.domain.model.event.DangerVictim
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.map.model.PointWrapper
 import io.hypersistence.tsid.TSID
 import com.vallem.sylph.shared.data.dynamo.dto.Event as EventDto
 
-fun Event<*>.toDto(userId: String) = EventDto(
+fun Event.toDto() = EventDto(
     pointJson = point.value.toJson(),
     reasons = reasons.map { it.enumName }.toSet(),
-    victim = (this as? Event.Danger)?.victim?.name,
+    victim = (this as? DangerEvent)?.victim?.name,
     note = note,
     publisherId = userId
 )
 
-fun EventDto.toEvent(): Event<*>? {
+fun EventDto.toEvent(): Event? {
     val point = try {
         Point.fromJson(pointJson)
     } catch (_: Throwable) {
         return null
     }
 
-    return if (victim == null) Event.Safety(
+    return if (victim == null) SafetyEvent(
         point = PointWrapper(point),
         reasons = reasons.mapNotNull { SafetyReason[it] }.toSet(),
-        note = note
-    ) else Event.Danger(
+        note = note,
+        userId = publisherId
+    ) else DangerEvent(
         point = PointWrapper(point),
         reasons = reasons.mapNotNull { DangerReason[it] }.toSet(),
         victim = DangerVictim[victim],
-        note = note
+        note = note,
+        userId = publisherId
     )
 }
 

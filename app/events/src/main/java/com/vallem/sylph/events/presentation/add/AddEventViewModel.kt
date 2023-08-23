@@ -23,7 +23,7 @@ class AddEventViewModel @Inject constructor(
 ) : ViewModel() {
     var eventSaveResult by mutableStateOf<Result<Unit>?>(null)
 
-    fun saveEvent(event: Event<*>) {
+    fun saveEvent(event: Event) {
         if (auth.currentUser == null) {
             eventSaveResult = Result.Failure(
                 FirebaseNoSignedInUserException("Current user is null")
@@ -35,7 +35,7 @@ class AddEventViewModel @Inject constructor(
         eventSaveResult = Result.Loading
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                eventsRepository.saveEvent(auth.currentUser?.uid.orEmpty(), event)
+                eventsRepository.saveEvent(event.update(userId = auth.currentUser?.uid.orEmpty()))
                     .onSuccess {
                         eventSaveResult = Result.Success(Unit)
                     }

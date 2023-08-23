@@ -5,6 +5,6 @@ import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
 
 interface EventsRepository {
-    suspend fun saveEvent(userId: String, event: Event<*>): Result<PutItemResult>
-    suspend fun retrieveUserEvents(userId: String): Result<List<Event<*>>>
+    suspend fun saveEvent(event: Event): Result<PutItemResult>
+    suspend fun retrieveUserEvents(userId: String): Result<List<Event>>
 }

@@ -22,7 +22,7 @@ class UserEventsViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val eventsRepository: EventsRepository,
 ) : ViewModel() {
-    var eventsQueryResult by mutableStateOf<Result<List<Event<*>>>>(Result.Loading)
+    var eventsQueryResult by mutableStateOf<Result<List<Event>>>(Result.Loading)
 
     val currentUser: FirebaseUser?
         get() = auth.currentUser

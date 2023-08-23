@@ -37,7 +37,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = SylphDependencies.Versions.Android.Compose.Compiler
     }
 
     compileOptions {
@@ -69,5 +69,6 @@ dependencies {
     implementation(SylphDependencies.Libs.Android.Compose.UiToolingPreview)
 
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
+    implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Animations)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 }

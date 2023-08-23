@@ -4,6 +4,7 @@ object SylphDependencies {
     object Versions {
         object Android {
             object Compose {
+                const val Compiler = "1.4.3"
                 const val Bom = "2023.08.00"
                 const val Activity = "1.7.1"
                 const val Foundation = "1.5.0-rc01"
@@ -28,7 +29,7 @@ object SylphDependencies {
                 const val DynamoDbDocument = "2.73.0"
             }
 
-            const val ComposeDestinations = "1.8.36-beta"
+            const val ComposeDestinations = "1.9.51"
             const val Jackson = "2.14.2"
             const val MapBox = "10.15.0"
             const val FirebaseBom = "31.3.0"
@@ -76,6 +77,7 @@ object SylphDependencies {
         object ThirdParty {
             object ComposeDestinations {
                 const val Core = "io.github.raamcosta.compose-destinations:core:${Versions.ThirdParty.ComposeDestinations}"
+                const val Animations = "io.github.raamcosta.compose-destinations:animations-core:${Versions.ThirdParty.ComposeDestinations}"
                 const val Ksp = "io.github.raamcosta.compose-destinations:ksp:${Versions.ThirdParty.ComposeDestinations}"
             }
 

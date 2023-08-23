@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.devtools.ksp") version "1.8.10-1.0.9"
+    id("kotlin-parcelize")
 }
 
 ksp {
@@ -27,7 +28,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = SylphDependencies.Versions.Android.Compose.Compiler
     }
 
     buildTypes {
@@ -65,8 +66,10 @@ dependencies {
     implementation(SylphDependencies.Libs.ThirdParty.MapBox)
     implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
     implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
+    implementation(SylphDependencies.Libs.ThirdParty.Jackson)
 
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
+    implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Animations)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))

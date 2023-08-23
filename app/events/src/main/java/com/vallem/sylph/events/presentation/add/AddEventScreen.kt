@@ -67,9 +67,11 @@ import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.domain.model.event.DangerEvent
 import com.vallem.sylph.shared.domain.model.event.DangerReason
 import com.vallem.sylph.shared.domain.model.event.DangerVictim
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
@@ -194,15 +196,15 @@ fun AddEventScreen(
 private fun EventSettings(
     point: Point,
     isLoading: Boolean,
-    onConfirm: (Event<*>) -> Unit
+    onConfirm: (Event) -> Unit
 ) {
-    var event by remember { mutableStateOf<Event<*>?>(null) }
+    var event by remember { mutableStateOf<Event?>(null) }
     val validForm by remember {
         derivedStateOf {
             when (val currentEvent = event) {
-                is Event.Safety -> currentEvent.reasons.isNotEmpty()
-                is Event.Danger -> currentEvent.reasons.isNotEmpty() && currentEvent.victim != null
-                null -> false
+                is SafetyEvent -> currentEvent.reasons.isNotEmpty()
+                is DangerEvent -> currentEvent.reasons.isNotEmpty() && currentEvent.victim != null
+                else -> false
             }
         }
     }
@@ -230,7 +232,7 @@ private fun EventSettings(
             ) {
                 SylphChip.Primary(
                     text = "Segura",
-                    selected = event is Event.Safety,
+                    selected = event is SafetyEvent,
                     colors = SylphChipDefaults.primaryColors(
                         content = Color.White,
                         container = animateColorAsState(
@@ -239,13 +241,13 @@ private fun EventSettings(
                         ).value,
                         border = MaterialTheme.zoneEventColors.safetySelected
                     ),
-                    onClick = { event = Event.Safety.defaultFor(point) },
+                    onClick = { event = SafetyEvent.defaultFor(point) },
                     modifier = Modifier.weight(1f)
                 )
 
                 SylphChip.Primary(
                     text = "Perigosa",
-                    selected = event is Event.Danger,
+                    selected = event is DangerEvent,
                     colors = SylphChipDefaults.primaryColors(
                         content = Color.White,
                         container = animateColorAsState(
@@ -254,7 +256,7 @@ private fun EventSettings(
                         ).value,
                         border = MaterialTheme.zoneEventColors.dangerSelected
                     ),
-                    onClick = { event = Event.Danger.defaultFor(point) },
+                    onClick = { event = DangerEvent.defaultFor(point) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -262,15 +264,15 @@ private fun EventSettings(
             Spacer(modifier = Modifier.height(16.dp))
 
             AnimatedContent(
-                targetState = event,
+                targetState = event?.type,
                 label = "ZoneTypeFields",
                 transitionSpec = { fadeIn() togetherWith fadeOut() }
-            ) { currentEvent ->
+            ) { type ->
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    when (currentEvent) {
-                        is Event.Safety -> {
+                    when (type) {
+                        Event.Type.Safety -> {
                             Text(
                                 text = "O que traz segurança à região marcada?",
                                 style = MaterialTheme.typography.titleMedium,
@@ -284,21 +286,23 @@ private fun EventSettings(
                                 SafetyReason.values.forEach { reason ->
                                     SylphChip.Small(
                                         text = reason.label,
-                                        selected = reason in currentEvent.reasons,
+                                        selected = reason in event?.reasons.orEmpty(),
                                         onClick = {
-                                            event = currentEvent.copy(
-                                                reasons = run {
-                                                    if (reason in currentEvent.reasons) currentEvent.reasons - reason
-                                                    else currentEvent.reasons + reason
-                                                }
-                                            )
+                                            event = event?.let {
+                                                it.update(
+                                                    reasons = run {
+                                                        if (reason in it.reasons) it.reasons - reason
+                                                        else it.reasons + reason
+                                                    }
+                                                )
+                                            }
                                         }
                                     )
                                 }
                             }
                         }
 
-                        is Event.Danger -> {
+                        Event.Type.Danger -> {
                             Text(
                                 text = "O que ocorreu na região marcada?",
                                 style = MaterialTheme.typography.titleMedium,
@@ -312,14 +316,16 @@ private fun EventSettings(
                                 DangerReason.values.forEach { reason ->
                                     SylphChip.Small(
                                         text = reason.label,
-                                        selected = reason in currentEvent.reasons,
+                                        selected = reason in event?.reasons.orEmpty(),
                                         onClick = {
-                                            event = currentEvent.copy(
-                                                reasons = run {
-                                                    if (reason in currentEvent.reasons) currentEvent.reasons - reason
-                                                    else currentEvent.reasons + reason
-                                                }
-                                            )
+                                            event = event?.let {
+                                                it.update(
+                                                    reasons = run {
+                                                        if (reason in it.reasons) it.reasons - reason
+                                                        else it.reasons + reason
+                                                    }
+                                                )
+                                            }
                                         }
                                     )
                                 }
@@ -339,18 +345,18 @@ private fun EventSettings(
                             ) {
                                 SylphChip.Primary(
                                     text = "Eu",
-                                    selected = currentEvent.victim == DangerVictim.User,
+                                    selected = (event as? DangerEvent)?.victim == DangerVictim.User,
                                     onClick = {
-                                        event = currentEvent.copy(victim = DangerVictim.User)
+                                        event = event?.update(victim = DangerVictim.User)
                                     },
                                     modifier = Modifier.weight(1f)
                                 )
 
                                 SylphChip.Primary(
                                     text = "Outra pessoa",
-                                    selected = currentEvent.victim == DangerVictim.OtherPerson,
+                                    selected = (event as? DangerEvent)?.victim == DangerVictim.OtherPerson,
                                     onClick = {
-                                        event = currentEvent.copy(victim = DangerVictim.OtherPerson)
+                                        event = event?.update(victim = DangerVictim.OtherPerson)
                                     },
                                     modifier = Modifier.weight(1f)
                                 )
@@ -360,7 +366,7 @@ private fun EventSettings(
                         null -> Spacer(modifier = Modifier.fillMaxWidth())
                     }
 
-                    currentEvent?.let {
+                    type?.let {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
@@ -370,8 +376,8 @@ private fun EventSettings(
                         )
 
                         SylphTextField.MultiLine(
-                            value = currentEvent.note,
-                            onValueChange = { event = currentEvent.update(note = it) },
+                            value = event?.note.orEmpty(),
+                            onValueChange = { event = event?.update(note = it) },
                             placeholder = "Informações adicionais",
                             maxLines = 5,
                             modifier = Modifier.fillMaxWidth()

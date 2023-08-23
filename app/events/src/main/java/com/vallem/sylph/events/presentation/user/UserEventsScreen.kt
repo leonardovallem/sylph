@@ -39,9 +39,11 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.button.SylphButton
+import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.user.components.UserEvent
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.presentation.components.FlagLoading
 import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
@@ -65,7 +67,7 @@ fun UserEventsScreen(
 @Composable
 private fun UserEventsScreenContent(
     navigator: DestinationsNavigator,
-    eventsQueryResult: Result<List<Event<*>>>,
+    eventsQueryResult: Result<List<Event>>,
     currentUser: FirebaseUser?,
     retryRequest: () -> Unit
 ) {
@@ -112,7 +114,7 @@ private fun UserEventsScreenContent(
                     items(eventsQueryResult.data) {
                         UserEvent(
                             event = it,
-                            onClick = { /*TODO*/ },
+                            onClick = { navigator.navigate(EventDetailsBottomSheetDestination(it)) },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -175,10 +177,11 @@ private fun UserEventsScreenSuccessPreview() {
         navigator = EmptyDestinationsNavigator,
         eventsQueryResult = Result.Success(
             listOf(
-                Event.Safety(
+                SafetyEvent(
                     point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
                     reasons = emptySet(),
-                    note = ""
+                    note = "",
+                    userId = ""
                 )
             )
         ),

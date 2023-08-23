@@ -28,9 +28,11 @@ import com.vallem.componentlibrary.ui.chip.SylphChip
 import com.vallem.componentlibrary.ui.list.SylphOverflowList
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
+import com.vallem.sylph.shared.domain.model.event.DangerEvent
 import com.vallem.sylph.shared.domain.model.event.DangerReason
 import com.vallem.sylph.shared.domain.model.event.DangerVictim
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.extensions.formatAsDMS
 import com.vallem.sylph.shared.extensions.truncate
@@ -38,7 +40,7 @@ import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.util.rememberGeocoder
 
 @Composable
-fun UserEvent(event: Event<*>, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun UserEvent(event: Event, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val geocoder = rememberGeocoder()
     val locationDetails = geocoder.briefLocationDetails(event.point.value)
 
@@ -52,7 +54,7 @@ fun UserEvent(event: Event<*>, onClick: () -> Unit, modifier: Modifier = Modifie
 
 @Composable
 private fun UserEvent(
-    event: Event<*>,
+    event: Event,
     onClick: () -> Unit,
     locationString: String,
     modifier: Modifier = Modifier
@@ -65,9 +67,9 @@ private fun UserEvent(
             .clip(RoundedCornerShape(12.dp))
             .background(
                 with(MaterialTheme.zoneEventColors) {
-                    when (event) {
-                        is Event.Safety -> safetyFaded
-                        is Event.Danger -> dangerFaded
+                    when (event.type) {
+                        Event.Type.Safety -> safetyFaded
+                        Event.Type.Danger -> dangerFaded
                     }
                 }
             )
@@ -76,15 +78,15 @@ private fun UserEvent(
     ) {
         Icon(
             imageVector = with(Icons.Rounded) {
-                when (event) {
-                    is Event.Safety -> SentimentSatisfied
-                    is Event.Danger -> SentimentDissatisfied
+                when (event.type) {
+                    Event.Type.Safety -> SentimentSatisfied
+                    Event.Type.Danger -> SentimentDissatisfied
                 }
             },
             tint = with(MaterialTheme.zoneEventColors) {
-                when (event) {
-                    is Event.Safety -> safetySelected
-                    is Event.Danger -> dangerSelected
+                when (event.type) {
+                    Event.Type.Safety -> safetySelected
+                    Event.Type.Danger -> dangerSelected
                 }
             },
             contentDescription = null,
@@ -101,9 +103,9 @@ private fun UserEvent(
                     style = MaterialTheme.typography.labelLarge,
                     overflow = TextOverflow.Ellipsis,
                     softWrap = false,
-                    color = when (event) {
-                        is Event.Safety -> MaterialTheme.zoneEventColors.safetySelected
-                        is Event.Danger -> MaterialTheme.colorScheme.onErrorContainer
+                    color = when (event.type) {
+                        Event.Type.Safety -> MaterialTheme.zoneEventColors.safetySelected
+                        Event.Type.Danger -> MaterialTheme.colorScheme.onErrorContainer
                     }
                 )
             }
@@ -133,10 +135,11 @@ private fun UserEventPreview() {
                 .padding(24.dp)
         ) {
             UserEvent(
-                event = Event.Safety(
+                event = SafetyEvent(
                     point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
                     reasons = setOf(SafetyReason.FriendlyEstablishmentsAround, SafetyReason.Other),
-                    note = "Something"
+                    note = "Something",
+                    userId = ""
                 ),
                 locationString = "Av. Afonso Pena, Centro - Belo Horizonte",
                 onClick = {},
@@ -144,11 +147,12 @@ private fun UserEventPreview() {
             )
 
             UserEvent(
-                event = Event.Danger(
+                event = DangerEvent(
                     point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
                     reasons = DangerReason.values.toSet(),
                     victim = DangerVictim.User,
-                    note = "Something"
+                    note = "Something",
+                    userId = ""
                 ),
                 locationString = "41°24'12.2\"N 2°10'26.5\"E",
                 onClick = {},

@@ -11,8 +11,8 @@ import com.vallem.sylph.shared.domain.repository.EventsRepository
 class EventsRepositoryImpl(
     private val dataSource: EventRemoteDataSource
 ) : EventsRepository {
-    override suspend fun saveEvent(userId: String, event: Event<*>) = try {
-        dataSource.save(event.toDto(userId))
+    override suspend fun saveEvent(event: Event) = try {
+        dataSource.save(event.toDto())
             ?.let { Result.Success(it) }
             ?: Result.Failure(DynamoDbInstantiationException())
     } catch (e: Exception) {
