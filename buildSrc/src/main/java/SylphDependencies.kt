@@ -54,6 +54,7 @@ object SylphDependencies {
                 const val Activity = "androidx.activity:activity-compose:${Versions.Android.Compose.Activity}"
                 const val Foundation = "androidx.compose.foundation:foundation:${Versions.Android.Compose.Foundation}"
                 const val MaterialIconsExtended = "androidx.compose.material:material-icons-extended:${Versions.Android.Compose.MaterialIconsExtended}"
+                const val Material = "androidx.compose.material:material"
                 const val Material3 = "androidx.compose.material3:material3"
                 const val Ui = "androidx.compose.ui:ui"
                 const val UiGraphics = "androidx.compose.ui:ui-graphics"

@@ -41,6 +41,7 @@ import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.user.components.UserEvent
+import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
@@ -50,7 +51,7 @@ import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
 import kotlinx.coroutines.launch
 
-@Destination(route = com.vallem.sylph.shared.Routes.Screen.UserEvents)
+@Destination(route = Routes.Screen.UserEvents)
 @Composable
 fun UserEventsScreen(
     navigator: DestinationsNavigator,
@@ -114,7 +115,12 @@ private fun UserEventsScreenContent(
                     items(eventsQueryResult.data) {
                         UserEvent(
                             event = it,
-                            onClick = { navigator.navigate(EventDetailsBottomSheetDestination(it)) },
+                            onClick = {
+                                navigator.navigate(EventDetailsBottomSheetDestination(it)) {
+                                    // this avoids bottom sheets to stack in the navigation stack without being cleared
+                                    popUpTo(Routes.Screen.UserEvents)
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

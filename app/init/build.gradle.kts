@@ -57,6 +57,7 @@ dependencies {
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)
     implementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
+    implementation(SylphDependencies.Libs.Android.Compose.Material)
     implementation(SylphDependencies.Libs.Android.Compose.Material3)
     implementation(SylphDependencies.Libs.Android.Compose.MaterialIconsExtended)
 

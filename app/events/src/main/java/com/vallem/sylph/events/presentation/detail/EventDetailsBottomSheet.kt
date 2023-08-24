@@ -51,13 +51,17 @@ import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapLocation
 
-@Destination(route = Routes.BottomSheet.EventDetails, style = DestinationStyleBottomSheet::class)
+@Destination(
+    route = Routes.BottomSheet.EventDetails,
+    style = DestinationStyleBottomSheet::class
+)
 @Composable
 fun EventDetailsBottomSheet(event: Event) {
     val sortedReasons = remember { event.reasons.sortedBy { it.label.length } }
 
     SylphBottomSheet { _ ->
         Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.verticalScroll(rememberScrollState())
         ) {
             BoxWithConstraints(
