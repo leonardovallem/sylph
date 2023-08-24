@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.SentimentDissatisfied
 import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush.Companion.verticalGradient
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +51,7 @@ import com.vallem.sylph.shared.domain.model.event.DangerVictim
 import com.vallem.sylph.shared.domain.model.event.Event
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
+import com.vallem.sylph.shared.extensions.asGeoIntent
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapLocation
 
@@ -57,6 +61,7 @@ import com.vallem.sylph.shared.map.presentation.MapLocation
 )
 @Composable
 fun EventDetailsBottomSheet(event: Event) {
+    val context = LocalContext.current
     val sortedReasons = remember { event.reasons.sortedBy { it.label.length } }
 
     SylphBottomSheet { _ ->
@@ -132,6 +137,15 @@ fun EventDetailsBottomSheet(event: Event) {
                         color = Color(0xFFC0C0C0),
                         modifier = Modifier.weight(1f)
                     )
+
+                    FilledTonalIconButton(
+                        onClick = { context.startActivity(event.point.value.asGeoIntent()) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Map,
+                            contentDescription = "Abrir no aplicativo de mapas",
+                        )
+                    }
                 }
             }
 
