@@ -14,7 +14,7 @@ ksp {
 
 android {
     namespace = "com.vallem.sylph.init"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 28
@@ -37,7 +37,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = SylphDependencies.Versions.Android.Compose.Compiler
     }
 
     compileOptions {
@@ -57,6 +57,7 @@ dependencies {
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)
     implementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
+    implementation(SylphDependencies.Libs.Android.Compose.Material)
     implementation(SylphDependencies.Libs.Android.Compose.Material3)
     implementation(SylphDependencies.Libs.Android.Compose.MaterialIconsExtended)
 
@@ -69,5 +70,6 @@ dependencies {
     implementation(SylphDependencies.Libs.Android.Compose.UiToolingPreview)
 
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
+    implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Animations)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 }

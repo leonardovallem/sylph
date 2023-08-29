@@ -10,6 +10,10 @@ object Routes {
         const val AddEvent = "add_event_screen"
         const val UserEvents = "user_events_screen"
     }
+
+    object BottomSheet {
+        const val EventDetails = "event_detail_bottom_sheet"
+    }
 }
 
 sealed class SylphDestination(open val route: String) {

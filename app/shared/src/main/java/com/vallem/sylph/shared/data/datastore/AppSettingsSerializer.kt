@@ -1,4 +1,4 @@
-package com.vallem.sylph.shared.datastore
+package com.vallem.sylph.shared.data.datastore
 
 import androidx.datastore.core.Serializer
 import com.fasterxml.jackson.databind.ObjectMapper

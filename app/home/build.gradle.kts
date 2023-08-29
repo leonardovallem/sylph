@@ -14,7 +14,7 @@ ksp {
 
 android {
     namespace = "com.vallem.sylph.home"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 28
@@ -27,7 +27,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = SylphDependencies.Versions.Android.Compose.Compiler
     }
 
     buildTypes {

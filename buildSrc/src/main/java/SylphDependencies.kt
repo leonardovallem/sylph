@@ -4,6 +4,7 @@ object SylphDependencies {
     object Versions {
         object Android {
             object Compose {
+                const val Compiler = "1.4.3"
                 const val Bom = "2023.08.00"
                 const val Activity = "1.7.1"
                 const val Foundation = "1.5.0-rc01"
@@ -22,11 +23,18 @@ object SylphDependencies {
         }
 
         object ThirdParty {
-            const val ComposeDestinations = "1.8.36-beta"
+            object AWS {
+                const val Core = "2.73.0"
+                const val DynamoDb = "2.73.0"
+                const val DynamoDbDocument = "2.73.0"
+            }
+
+            const val ComposeDestinations = "1.9.51"
             const val Jackson = "2.14.2"
             const val MapBox = "10.15.0"
             const val FirebaseBom = "31.3.0"
             const val JUnit = "4.13.2"
+            const val TSID = "2.1.1"
         }
 
         object Kotlin {
@@ -46,6 +54,7 @@ object SylphDependencies {
                 const val Activity = "androidx.activity:activity-compose:${Versions.Android.Compose.Activity}"
                 const val Foundation = "androidx.compose.foundation:foundation:${Versions.Android.Compose.Foundation}"
                 const val MaterialIconsExtended = "androidx.compose.material:material-icons-extended:${Versions.Android.Compose.MaterialIconsExtended}"
+                const val Material = "androidx.compose.material:material"
                 const val Material3 = "androidx.compose.material3:material3"
                 const val Ui = "androidx.compose.ui:ui"
                 const val UiGraphics = "androidx.compose.ui:ui-graphics"
@@ -69,6 +78,7 @@ object SylphDependencies {
         object ThirdParty {
             object ComposeDestinations {
                 const val Core = "io.github.raamcosta.compose-destinations:core:${Versions.ThirdParty.ComposeDestinations}"
+                const val Animations = "io.github.raamcosta.compose-destinations:animations-core:${Versions.ThirdParty.ComposeDestinations}"
                 const val Ksp = "io.github.raamcosta.compose-destinations:ksp:${Versions.ThirdParty.ComposeDestinations}"
             }
 
@@ -78,9 +88,16 @@ object SylphDependencies {
                 const val Auth = "com.google.firebase:firebase-auth-ktx"
             }
 
+            object AWS {
+                const val Core = "com.amazonaws:aws-android-sdk-core:${Versions.ThirdParty.AWS.Core}"
+                const val DynamoDb = "com.amazonaws:aws-android-sdk-ddb:${Versions.ThirdParty.AWS.DynamoDb}"
+                const val DynamoDbDocument = "com.amazonaws:aws-android-sdk-ddb-document:${Versions.ThirdParty.AWS.DynamoDbDocument}"
+            }
+
             const val Jackson = "com.fasterxml.jackson.core:jackson-databind:${Versions.ThirdParty.Jackson}"
             const val MapBox = "com.mapbox.maps:android:${Versions.ThirdParty.MapBox}"
             const val JUnit = "junit:junit:${Versions.ThirdParty.JUnit}"
+            const val TSID = "io.hypersistence:hypersistence-tsid:${Versions.ThirdParty.TSID}"
         }
 
         object Kotlin {

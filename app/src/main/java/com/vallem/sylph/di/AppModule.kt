@@ -5,10 +5,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import com.google.firebase.auth.FirebaseAuth
+import com.vallem.sylph.shared.data.datastore.AppSettings
+import com.vallem.sylph.shared.data.datastore.AppSettingsSerializer
+import com.vallem.sylph.shared.data.remote.EventRemoteDataSource
+import com.vallem.sylph.shared.data.remote.impl.DynamoEventDataSource
 import com.vallem.sylph.shared.data.repository.AuthRepositoryImpl
-import com.vallem.sylph.shared.datastore.AppSettings
-import com.vallem.sylph.shared.datastore.AppSettingsSerializer
+import com.vallem.sylph.shared.data.repository.EventsRepositoryImpl
 import com.vallem.sylph.shared.domain.repository.AuthRepository
+import com.vallem.sylph.shared.domain.repository.EventsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,6 +31,14 @@ object AppModule {
 
     @Provides
     fun provideAuthRepository(impl: AuthRepositoryImpl): AuthRepository = impl
+
+    @Provides
+    fun providesEventsDataSource(): EventRemoteDataSource = DynamoEventDataSource()
+
+    @Provides
+    fun provideEventsRepository(
+        dataSource: EventRemoteDataSource
+    ): EventsRepository = EventsRepositoryImpl(dataSource)
 
     @Singleton
     @Provides

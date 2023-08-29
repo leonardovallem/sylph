@@ -210,8 +210,10 @@ val MaterialTheme.zoneEventColors: ZoneEventColors
 class ZoneEventColors(
     val danger: Color = Color(0xFFEF271B),
     val dangerSelected: Color = Color(0xFF7B0828),
+    val dangerFaded: Color = Color(0xFFDF9A8B),
     val safety: Color = Color(0xFF0B6E4F),
-    val safetySelected: Color = Color(0xFF16DF9F)
+    val safetySelected: Color = Color(0xFF16DF9F),
+    val safetyFaded: Color = Color(0xFFCCFBE5),
 )
 
 object TransFlagColors {

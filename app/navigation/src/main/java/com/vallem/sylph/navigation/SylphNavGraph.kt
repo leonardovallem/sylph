@@ -6,6 +6,7 @@ import com.ramcosta.composedestinations.spec.Route
 import com.vallem.init.destinations.LoginScreenDestination
 import com.vallem.init.destinations.OnboardingScreenDestination
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
+import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.destinations.UserEventsScreenDestination
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
 
@@ -20,5 +21,6 @@ object SylphNavGraph : NavGraphSpec {
         HomeScreenDestination,
         AddEventScreenDestination,
         UserEventsScreenDestination,
+        EventDetailsBottomSheetDestination,
     ).associateBy { it.route }
 }
