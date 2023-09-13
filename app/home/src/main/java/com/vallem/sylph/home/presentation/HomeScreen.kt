@@ -3,6 +3,7 @@ package com.vallem.sylph.home.presentation
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -31,6 +32,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,20 +46,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.sources.addSource
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphBottomBar
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
+import com.vallem.componentlibrary.ui.loading.SylphLoading
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
+import com.vallem.sylph.events.map.EventHeatmap
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.home.presentation.model.HomeShortcut
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.SylphDestination
+import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.extensions.point
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
@@ -79,6 +87,8 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val locationProvider = rememberLocationProvider()
 
+    val eventsFeatures by viewModel.eventsFeatures.collectAsState(viewModel.viewModelScope.coroutineContext)
+
     val location by locationProvider.location.collectAsState(initial = null)
     val isLocationEnabled by locationProvider.isLocationEnabled.collectAsState(initial = false)
 
@@ -98,6 +108,22 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.updateEvents()
+    }
+
+    LaunchedEffect(eventsFeatures) {
+        when (val features = eventsFeatures) {
+            is Result.Success -> mapState.style {
+                addSource(EventHeatmap.sourceFrom(features.data))
+                addLayer(EventHeatmap.Layers.Danger)
+                addLayer(EventHeatmap.Layers.Safety)
+            }
+
+            else -> Unit
+        }
+    }
+
     NavigationDrawerWrapper(
         drawerState = drawerState,
         userInfo = viewModel.currentUser?.displayName?.let { UserInfo(it, null) },
@@ -106,21 +132,27 @@ fun HomeScreen(
     ) {
         Scaffold(
             topBar = {
-                SylphTopBar(
-                    title = "Explorar",
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch { drawerState.open() }
+                Column {
+                    SylphTopBar(
+                        title = "Explorar",
+                        navigationIcon = {
+                            IconButton(
+                                onClick = {
+                                    scope.launch { drawerState.open() }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Menu,
+                                    contentDescription = "Menu de navegação"
+                                )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Menu,
-                                contentDescription = "Menu de navegação"
-                            )
-                        }
-                    },
-                )
+                        },
+                    )
+
+                    AnimatedVisibility(visible = eventsFeatures == Result.Loading) {
+                        SylphLoading.Linear(modifier = Modifier.fillMaxWidth())
+                    }
+                }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {

@@ -5,6 +5,8 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest
 import com.amazonaws.services.dynamodbv2.model.ScanRequest
 import com.amazonaws.services.dynamodbv2.model.Select
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
 import com.vallem.sylph.shared.data.dynamo.DynamoDbClientStore
 import com.vallem.sylph.shared.data.dynamo.DynamoTables
 import com.vallem.sylph.shared.data.dynamo.dto.Event
@@ -29,4 +31,12 @@ class DynamoEventDataSource(
     )
         ?.items
         ?.mapNotNull(EventMapper::fromDynamoItem)
+
+    override suspend fun retrieveAllEvents() = client?.scan(
+        ScanRequest(DynamoTables.Events).withProjectionExpression("feature")
+    )
+        ?.items
+        ?.mapNotNull { it.values.firstOrNull()?.s }
+        ?.map { Feature.fromJson(it) }
+        ?.let(FeatureCollection::fromFeatures)
 }

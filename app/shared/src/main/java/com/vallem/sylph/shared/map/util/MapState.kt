@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
+import com.mapbox.maps.extension.style.StyleInterface
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
@@ -43,6 +44,11 @@ class MapState(center: Point?) {
     fun setView(view: MapView) {
         mapView = view
     }
+
+    fun style(block: StyleInterface.() -> Unit) = mapView
+        ?.getMapboxMap()
+        ?.getStyle()
+        ?.run(block)
 
     fun zoomToLocation(point: Point, zoom: Double = 12.0, duration: Long = 1000L) {
         mapView?.camera?.easeTo(

@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Event(
-    val pointJson: String,
+    val featureJson: String,
     val reasons: Set<String>,
     val victim: String?,
     val note: String,

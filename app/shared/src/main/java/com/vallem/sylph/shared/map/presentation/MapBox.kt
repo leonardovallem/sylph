@@ -82,8 +82,6 @@ fun MapBox(
         state.setView(view)
 
         view.getMapboxMap().run {
-
-
             loadStyleUri(if (isDarkMode) Style.TRAFFIC_NIGHT else Style.TRAFFIC_DAY) {
                 view.location.updateSettings {
                     enabled = true

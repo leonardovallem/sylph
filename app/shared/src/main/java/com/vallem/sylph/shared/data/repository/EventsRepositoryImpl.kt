@@ -29,4 +29,12 @@ class EventsRepositoryImpl(
     } catch (e: Exception) {
         Result.Failure(e)
     }
+
+    override suspend fun retrieveEventsFeatures() = try {
+        dataSource.retrieveAllEvents()
+            ?.let { Result.Success(it) }
+            ?: Result.Failure(DynamoDbInstantiationException())
+    } catch (e: Exception) {
+        Result.Failure(e)
+    }
 }

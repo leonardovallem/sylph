@@ -1,6 +1,8 @@
 package com.vallem.sylph.shared.data.mapper
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.google.gson.JsonObject
+import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
 import com.vallem.sylph.shared.domain.model.event.DangerEvent
 import com.vallem.sylph.shared.domain.model.event.DangerReason
@@ -13,21 +15,31 @@ import io.hypersistence.tsid.TSID
 import com.vallem.sylph.shared.data.dynamo.dto.Event as EventDto
 
 fun Event.toDto() = EventDto(
-    pointJson = point.value.toJson(),
+    featureJson = point.value.toFeature(type).toJson(),
     reasons = reasons.map { it.enumName }.toSet(),
     victim = (this as? DangerEvent)?.victim?.name,
     note = note,
     publisherId = userId
 )
 
+fun Point.toFeature(eventType: Event.Type) = Feature.fromGeometry(
+    this,
+    JsonObject().apply {
+        addProperty("eventType", eventType.name)
+    }
+)
+
 fun EventDto.toEvent(): Event? {
-    val point = try {
-        Point.fromJson(pointJson)
+    val feature = try {
+        Feature.fromJson(featureJson)
     } catch (_: Throwable) {
         return null
     }
 
-    return if (victim == null) SafetyEvent(
+    val isSafety = feature.properties()?.get("eventType")?.asString == Event.Type.Safety.name
+    val point = feature.geometry() as? Point ?: return null
+
+    return if (isSafety || victim == null) SafetyEvent(
         point = PointWrapper(point),
         reasons = reasons.mapNotNull { SafetyReason[it] }.toSet(),
         note = note,
@@ -42,7 +54,7 @@ fun EventDto.toEvent(): Event? {
 }
 
 fun EventDto.toDynamoItem() = mutableMapOf<String, AttributeValue>().apply {
-    this["point"] = AttributeValue(pointJson)
+    this["feature"] = AttributeValue(featureJson)
     this["reasons"] = AttributeValue(reasons.toList())
     victim?.let { this["victim"] = AttributeValue(it) }
     this["note"] = AttributeValue(note)
@@ -52,7 +64,7 @@ fun EventDto.toDynamoItem() = mutableMapOf<String, AttributeValue>().apply {
 
 object EventMapper {
     fun fromDynamoItem(item: Map<String, AttributeValue>): EventDto? {
-        val point = item["point"]?.s ?: return null
+        val feature = item["feature"]?.s ?: return null
         val publisherId = item["publisher_id"]?.s ?: return null
 
         val reasons = item["reasons"]?.ss?.toSet().orEmpty()
@@ -60,6 +72,6 @@ object EventMapper {
         val note = item["note"]?.s.orEmpty()
         val eventId = item["event_id"]?.s.orEmpty()
 
-        return EventDto(point, reasons, victim, note, publisherId, eventId)
+        return EventDto(feature, reasons, victim, note, publisherId, eventId)
     }
 }
