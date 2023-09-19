@@ -30,6 +30,8 @@ object EventHeatmap {
         object Id {
             const val Danger = "DANGER_EVENT_HEATMAP_LAYER"
             const val Safety = "SAFETY_EVENT_HEATMAP_LAYER"
+
+            val values = listOf(Danger, Safety)
         }
 
         private object Constants {

@@ -10,13 +10,16 @@ import androidx.compose.runtime.setValue
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
+import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.StyleInterface
+import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.locationcomponent.location
 import com.vallem.sylph.shared.R
 import com.vallem.sylph.util.extensions.getDrawable
 import com.vallem.sylph.util.extensions.toBitmap
@@ -79,6 +82,22 @@ class MapState(center: Point?) {
             create(pointAnnotationOptions)
         }
     }
+}
+
+fun MapView.defaultStyle(isDarkMode: Boolean, action: Style.() -> Unit = {}) = getMapboxMap().loadStyleUri(
+    styleUri = if (isDarkMode) Style.TRAFFIC_NIGHT else Style.TRAFFIC_DAY
+) {
+    location.updateSettings {
+        enabled = true
+        locationPuck = LocationPuck2D(
+            topImage = context.getDrawable(
+                R.drawable.ic_location_on_24,
+                com.vallem.componentlibrary.R.color.purple_200
+            )
+        )
+    }
+
+    action(it)
 }
 
 @Composable

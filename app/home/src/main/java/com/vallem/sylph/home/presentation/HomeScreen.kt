@@ -1,5 +1,6 @@
 package com.vallem.sylph.home.presentation
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -10,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,8 +49,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
-import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.bindgen.Value
+import com.mapbox.geojson.Point
+import com.mapbox.maps.MercatorCoordinate
+import com.mapbox.maps.ScreenBox
+import com.mapbox.maps.ScreenCoordinate
+import com.mapbox.maps.SourceQueryOptions
+import com.mapbox.maps.extension.style.layers.addPersistentLayer
+import com.mapbox.maps.extension.style.layers.getLayer
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.getSource
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
@@ -69,11 +79,14 @@ import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.extensions.point
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
+import com.vallem.sylph.shared.map.util.defaultStyle
 import com.vallem.sylph.shared.map.util.rememberLocationProvider
 import com.vallem.sylph.shared.map.util.rememberMapState
 import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
 import com.vallem.sylph.shared.util.truthyCallback
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlinx.coroutines.launch
 
 @Destination(route = Routes.Screen.Home)
@@ -86,6 +99,7 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val locationProvider = rememberLocationProvider()
+    val isDarkMode = isSystemInDarkTheme()
 
     val eventsFeatures by viewModel.eventsFeatures.collectAsState(viewModel.viewModelScope.coroutineContext)
 
@@ -114,10 +128,13 @@ fun HomeScreen(
 
     LaunchedEffect(eventsFeatures) {
         when (val features = eventsFeatures) {
-            is Result.Success -> mapState.style {
-                addSource(EventHeatmap.sourceFrom(features.data))
-                addLayer(EventHeatmap.Layers.Danger)
-                addLayer(EventHeatmap.Layers.Safety)
+            is Result.Success -> mapState.mapView?.defaultStyle(isDarkMode) {
+                getSource(EventHeatmap.EventDataSourceId)
+                    ?: addSource(EventHeatmap.sourceFrom(features.data))
+                getLayer(EventHeatmap.Layers.Id.Danger)
+                    ?: addPersistentLayer(EventHeatmap.Layers.Danger)
+                getLayer(EventHeatmap.Layers.Id.Safety)
+                    ?: addPersistentLayer(EventHeatmap.Layers.Safety)
             }
 
             else -> Unit
@@ -232,6 +249,46 @@ fun HomeScreen(
                 MapBox(
                     state = mapState,
                     accessToken = BuildConfig.MAP_BOX_API_TOKEN,
+                    onClick = { clickedPoint ->
+                        val mapbox = mapState.mapView?.getMapboxMap() ?: return@MapBox false
+                        val coordinates = mapbox.project(clickedPoint, mapbox.cameraState.zoom)
+
+                        val tolerance = 10.0
+                        val screenBox = ScreenBox(
+                            ScreenCoordinate(coordinates.x - tolerance, coordinates.y - tolerance),
+                            ScreenCoordinate(coordinates.x + tolerance, coordinates.y + tolerance),
+                        )
+
+                        mapbox.executeOnRenderThread {
+                            // TODO make it work using [queryRenderedFeatures]
+                            mapbox.querySourceFeatures(
+                                sourceId = EventHeatmap.EventDataSourceId,
+                                options = SourceQueryOptions(
+                                    EventHeatmap.Layers.Id.values,
+                                    Value.nullValue()
+                                )
+                            ) { features ->
+                                features.value?.mapNotNull {
+                                    it.feature
+                                }?.filter {
+                                    val point = it.geometry() as? Point ?: return@filter false
+                                    val coords = mapbox.project(point, mapbox.cameraState.zoom)
+
+                                    coords in screenBox
+                                }?.minByOrNull {
+                                    val point = it.geometry() as Point
+                                    val coords = mapbox.project(point, mapbox.cameraState.zoom)
+                                    coords.distanceTo(coordinates)
+                                }?.let {
+                                    Log.i("HomeScreen", it.toString())
+                                    mapState.recenter(it.geometry() as Point)
+                                    mapState.center(18.0)
+                                }
+                            }
+                        }
+
+                        false
+                    },
                     onLongClick = truthyCallback {
                         SylphDestination.Screen.AddEvent(PointWrapper(it))
                         navigator.navigate(AddEventScreenDestination(PointWrapper(it)))
@@ -244,6 +301,14 @@ fun HomeScreen(
         }
     }
 }
+
+fun MercatorCoordinate.distanceTo(coordinate: MercatorCoordinate) =
+    sqrt((x - coordinate.x).pow(2) + (y - coordinate.y).pow(2))
+
+operator fun ScreenBox.contains(coordinate: MercatorCoordinate) = (coordinate.x >= min.x)
+    .and(coordinate.x <= max.x)
+    .and(coordinate.y >= min.y)
+    .and(coordinate.y <= max.y)
 
 @Preview
 @Composable
