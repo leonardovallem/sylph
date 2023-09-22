@@ -1,6 +1,5 @@
 package com.vallem.sylph.home.presentation
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -69,8 +68,10 @@ import com.vallem.componentlibrary.ui.loading.SylphLoading
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
+import com.vallem.sylph.events.domain.EventDetails
 import com.vallem.sylph.events.map.EventHeatmap
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
+import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
 import com.vallem.sylph.home.presentation.model.HomeShortcut
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
@@ -87,6 +88,7 @@ import com.vallem.sylph.shared.presentation.model.NavigationShortcut
 import com.vallem.sylph.shared.util.truthyCallback
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Destination(route = Routes.Screen.Home)
@@ -280,9 +282,18 @@ fun HomeScreen(
                                     val coords = mapbox.project(point, mapbox.cameraState.zoom)
                                     coords.distanceTo(coordinates)
                                 }?.let {
-                                    Log.i("HomeScreen", it.toString())
                                     mapState.recenter(it.geometry() as Point)
                                     mapState.center(18.0)
+
+                                    it.id()?.let { id ->
+                                        scope.launch(Dispatchers.Main) {
+                                            navigator.navigate(
+                                                EventDetailsBottomSheetDestination(
+                                                    EventDetails.Async(id)
+                                                )
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

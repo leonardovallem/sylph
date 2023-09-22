@@ -139,7 +139,8 @@ private fun UserEventPreview() {
                     point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
                     reasons = setOf(SafetyReason.FriendlyEstablishmentsAround, SafetyReason.Other),
                     note = "Something",
-                    userId = ""
+                    userId = "",
+                    id = null
                 ),
                 locationString = "Av. Afonso Pena, Centro - Belo Horizonte",
                 onClick = {},
@@ -152,7 +153,8 @@ private fun UserEventPreview() {
                     reasons = DangerReason.values.toSet(),
                     victim = DangerVictim.User,
                     note = "Something",
-                    userId = ""
+                    userId = "",
+                    id = null
                 ),
                 locationString = "41°24'12.2\"N 2°10'26.5\"E",
                 onClick = {},

@@ -2,6 +2,7 @@ package com.vallem.sylph.shared.data.remote.impl
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest
 import com.amazonaws.services.dynamodbv2.model.ScanRequest
 import com.amazonaws.services.dynamodbv2.model.Select
@@ -20,6 +21,12 @@ class DynamoEventDataSource(
     override suspend fun save(event: Event) = client?.putItem(
         PutItemRequest(DynamoTables.Events, event.toDynamoItem())
     )
+
+    override suspend fun retrieveEventDetails(id: String) = client?.getItem(
+        GetItemRequest(DynamoTables.Events, mapOf("event_id" to AttributeValue(id)))
+    )
+        ?.item
+        ?.let(EventMapper::fromDynamoItem)
 
     override suspend fun retrieveUserEvents(userId: String) = client?.scan(
         ScanRequest(DynamoTables.Events)

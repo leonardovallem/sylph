@@ -19,6 +19,14 @@ class EventsRepositoryImpl(
         Result.Failure(e)
     }
 
+    override suspend fun retrieveEventDetails(eventId: String) = try {
+        dataSource.retrieveEventDetails(eventId)
+            ?.let { Result.Success(it.toEvent()) }
+            ?: Result.Failure(DynamoDbInstantiationException())
+    } catch (e: Exception) {
+        Result.Failure(e)
+    }
+
     override suspend fun retrieveUserEvents(userId: String) = try {
         val response = dataSource.retrieveUserEvents(userId)
 

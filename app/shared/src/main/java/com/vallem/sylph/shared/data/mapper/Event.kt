@@ -19,7 +19,8 @@ fun Event.toDto() = EventDto(
     reasons = reasons.map { it.enumName }.toSet(),
     victim = (this as? DangerEvent)?.victim?.name,
     note = note,
-    publisherId = userId
+    publisherId = userId,
+    eventId = id
 )
 
 fun Point.toFeature(eventType: Event.Type) = Feature.fromGeometry(
@@ -43,24 +44,38 @@ fun EventDto.toEvent(): Event? {
         point = PointWrapper(point),
         reasons = reasons.mapNotNull { SafetyReason[it] }.toSet(),
         note = note,
-        userId = publisherId
+        userId = publisherId,
+        id = eventId
     ) else DangerEvent(
         point = PointWrapper(point),
         reasons = reasons.mapNotNull { DangerReason[it] }.toSet(),
         victim = DangerVictim[victim],
         note = note,
-        userId = publisherId
+        userId = publisherId,
+        id = eventId
     )
 }
 
 fun EventDto.toDynamoItem() = mutableMapOf<String, AttributeValue>().apply {
-    this["feature"] = AttributeValue(featureJson)
+    val id = eventId ?: TSID.fast().toString()
+
+    val feature = Feature.fromJson(featureJson)
+        .withId(id)
+        .toJson()
+
+    this["feature"] = AttributeValue(feature)
     this["reasons"] = AttributeValue(reasons.toList())
     victim?.let { this["victim"] = AttributeValue(it) }
     this["note"] = AttributeValue(note)
     this["publisher_id"] = AttributeValue(publisherId)
-    this["event_id"] = AttributeValue(eventId ?: TSID.fast().toString())
+    this["event_id"] = AttributeValue(id)
 }
+
+fun Feature.withId(id: String): Feature = Feature.fromGeometry(
+    geometry(),
+    properties(),
+    id
+)
 
 object EventMapper {
     fun fromDynamoItem(item: Map<String, AttributeValue>): EventDto? {

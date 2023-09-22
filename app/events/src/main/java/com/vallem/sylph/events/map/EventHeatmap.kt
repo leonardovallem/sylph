@@ -8,7 +8,6 @@ import com.mapbox.maps.extension.style.layers.generated.HeatmapLayerDsl
 import com.mapbox.maps.extension.style.layers.generated.heatmapLayer
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
-import com.vallem.sylph.events.map.EventHeatmap.Layers.Constants.filterEventType
 import com.vallem.sylph.shared.domain.model.event.Event
 import kotlin.math.max
 import kotlin.math.min
@@ -37,15 +36,6 @@ object EventHeatmap {
         private object Constants {
             const val Radius = 20.0
             const val Intensity = 0.9
-
-            fun HeatmapLayerDsl.filterEventType(eventType: Event.Type) = filter(
-                all {
-                    eq {
-                        get("eventType")
-                        literal(eventType.name)
-                    }
-                }
-            )
         }
 
         val Danger = heatmapLayer(
@@ -133,6 +123,15 @@ object EventHeatmap {
         }
     }
 }
+
+fun HeatmapLayerDsl.filterEventType(eventType: Event.Type) = filter(
+    all {
+        eq {
+            get("eventType")
+            literal(eventType.name)
+        }
+    }
+)
 
 private fun Expression.ExpressionBuilder.hsl(
     hue: Float,
