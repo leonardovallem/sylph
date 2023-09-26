@@ -61,6 +61,8 @@ import com.mapbox.maps.extension.style.sources.getSource
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import com.ramcosta.composedestinations.result.NavResult
+import com.ramcosta.composedestinations.result.OpenResultRecipient
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphBottomBar
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
@@ -72,6 +74,7 @@ import com.vallem.sylph.events.domain.EventDetails
 import com.vallem.sylph.events.map.EventHeatmap
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.detail.EventDetailsResult
 import com.vallem.sylph.home.presentation.model.HomeShortcut
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
@@ -85,6 +88,7 @@ import com.vallem.sylph.shared.map.util.rememberLocationProvider
 import com.vallem.sylph.shared.map.util.rememberMapState
 import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
+import com.vallem.sylph.shared.util.EmptyOpenResultRecipient
 import com.vallem.sylph.shared.util.truthyCallback
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -95,6 +99,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     navigator: DestinationsNavigator,
+    eventDetailsRecipient: OpenResultRecipient<EventDetailsResult>,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -122,6 +127,10 @@ fun HomeScreen(
         onDispose {
             location?.let(viewModel::saveCurrentLocation)
         }
+    }
+
+    eventDetailsRecipient.onNavResult {
+        if (it is NavResult.Value) TODO()
     }
 
     LaunchedEffect(Unit) {
@@ -289,7 +298,7 @@ fun HomeScreen(
                                         scope.launch(Dispatchers.Main) {
                                             navigator.navigate(
                                                 EventDetailsBottomSheetDestination(
-                                                    EventDetails.Async(id)
+                                                    EventDetails.Async(id, true)
                                                 )
                                             )
                                         }
@@ -325,6 +334,9 @@ operator fun ScreenBox.contains(coordinate: MercatorCoordinate) = (coordinate.x 
 @Composable
 private fun HomeScreenPreview() {
     SylphTheme {
-        HomeScreen(navigator = EmptyDestinationsNavigator)
+        HomeScreen(
+            navigator = EmptyDestinationsNavigator,
+            eventDetailsRecipient = EmptyOpenResultRecipient(),
+        )
     }
 }

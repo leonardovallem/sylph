@@ -1,6 +1,7 @@
 package com.vallem.sylph.events.presentation.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.SentimentDissatisfied
 import androidx.compose.material.icons.rounded.SentimentSatisfied
@@ -40,6 +42,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mapbox.geojson.Point
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.result.ResultBackNavigator
 import com.ramcosta.composedestinations.spec.DestinationStyleBottomSheet
 import com.vallem.componentlibrary.ui.bottomsheet.SylphBottomSheet
 import com.vallem.componentlibrary.ui.chip.SylphChip
@@ -64,38 +67,62 @@ import com.vallem.sylph.shared.map.presentation.MapLocation
     style = DestinationStyleBottomSheet::class
 )
 @Composable
-fun EventDetailsBottomSheet(details: EventDetails) {
-    when (details) {
-        is EventDetails.Async -> EventDetailsBottomSheet(eventId = details.eventId)
-        is EventDetails.Sync -> SylphBottomSheet { _ ->
-            EventDetailsBottomSheetBase(details.event)
+fun EventDetailsBottomSheet(
+    details: EventDetails,
+    navigator: ResultBackNavigator<EventDetailsResult>
+) {
+    SylphBottomSheet { pv ->
+        when (details) {
+            is EventDetails.Async -> EventDetailsBottomSheet(
+                eventId = details.eventId,
+                showUserInfo = details.showUserInfo,
+                onShowUserInfo = { navigator.navigateBack(EventDetailsResult.ShowUserDetails(it)) },
+                modifier = Modifier.padding(pv)
+            )
+
+            is EventDetails.Sync -> EventDetailsBottomSheetBase(
+                event = details.event,
+                showUserInfo = false
+            )
         }
     }
 }
 
 @Composable
-fun EventDetailsBottomSheet(eventId: String, viewModel: EventDetailsViewModel = hiltViewModel()) {
+fun EventDetailsBottomSheet(
+    eventId: String,
+    showUserInfo: Boolean,
+    modifier: Modifier = Modifier,
+    onShowUserInfo: (String) -> Unit,
+    viewModel: EventDetailsViewModel = hiltViewModel()
+) {
     val result by viewModel.result.collectAsState()
 
     LaunchedEffect(eventId) {
         viewModel.retrieveEventDetails(eventId)
     }
 
-    SylphBottomSheet { pv ->
-        when (val res = result) {
-            is Result.Success -> res.data?.let {
-                EventDetailsBottomSheetBase(event = it)
-            }
-
-            is Result.Failure -> DetailsRetrievalError(modifier = Modifier.padding(pv))
-
-            Result.Loading -> DetailsLoading(modifier = Modifier.padding(pv))
+    when (val res = result) {
+        is Result.Success -> res.data?.let {
+            EventDetailsBottomSheetBase(
+                event = it,
+                showUserInfo = showUserInfo,
+                onUserInfoClick = onShowUserInfo,
+            )
         }
+
+        is Result.Failure -> DetailsRetrievalError(modifier = modifier)
+
+        Result.Loading -> DetailsLoading(modifier = modifier)
     }
 }
 
 @Composable
-private fun EventDetailsBottomSheetBase(event: Event) {
+private fun EventDetailsBottomSheetBase(
+    event: Event,
+    showUserInfo: Boolean,
+    onUserInfoClick: (String) -> Unit = {}
+) {
     val context = LocalContext.current
     val sortedReasons = remember { event.reasons.sortedBy { it.label.length } }
 
@@ -222,49 +249,71 @@ private fun EventDetailsBottomSheetBase(event: Event) {
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        if (showUserInfo) Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .clickable { onUserInfoClick(event.userId) }
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = "Ver informações do publicador",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f)
+            )
+
+            Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
+        } else Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Preview("Safety")
 @Composable
 private fun SafetyEventDetailScreenPreview() {
-    EventDetailsBottomSheetBase(
-        event = SafetyEvent(
-            point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
-            reasons = SafetyReason.values.toSet(),
-            note = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+    SylphBottomSheet {
+        EventDetailsBottomSheetBase(
+            event = SafetyEvent(
+                point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
+                reasons = SafetyReason.values.toSet(),
+                note = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
                  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute 
                  irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
                  pariatur."""
-                .replace("\n", "")
-                .replace("  ", " ")
-                .replace("\t", ""),
-            userId = "",
-            id = null
-        ),
-    )
+                    .replace("\n", "")
+                    .replace("  ", " ")
+                    .replace("\t", ""),
+                userId = "",
+                id = null
+            ),
+            true
+        )
+    }
 }
 
 @Preview("Danger")
 @Composable
 private fun DangerEventDetailScreenPreview() {
-    EventDetailsBottomSheetBase(
-        event = DangerEvent(
-            point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
-            reasons = DangerReason.values.toSet(),
-            victim = DangerVictim.OtherPerson,
-            note = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+    SylphBottomSheet {
+        EventDetailsBottomSheetBase(
+            event = DangerEvent(
+                point = PointWrapper(Point.fromLngLat(0.0, 0.0)),
+                reasons = DangerReason.values.toSet(),
+                victim = DangerVictim.OtherPerson,
+                note = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
                  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute 
                  irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
                  pariatur."""
-                .replace("\n", "")
-                .replace("  ", " ")
-                .replace("\t", ""),
-            userId = "",
-            id = null
+                    .replace("\n", "")
+                    .replace("  ", " ")
+                    .replace("\t", ""),
+                userId = "",
+                id = null
+            ),
+            true
         )
-    )
+    }
 }

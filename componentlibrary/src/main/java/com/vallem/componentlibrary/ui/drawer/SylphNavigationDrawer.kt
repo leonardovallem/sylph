@@ -1,18 +1,14 @@
 package com.vallem.componentlibrary.ui.drawer
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
@@ -27,8 +23,8 @@ import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.model.MockShortcut
 import com.vallem.componentlibrary.ui.model.SylphShortcut
 import com.vallem.componentlibrary.ui.theme.SylphTheme
+import com.vallem.componentlibrary.ui.user.UserInfo
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T : SylphShortcut> SylphNavigationDrawer(
     userInfo: UserInfo?,
@@ -47,19 +43,7 @@ fun <T : SylphShortcut> SylphNavigationDrawer(
             .fillMaxHeight(),
     ) {
         userInfo?.let {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .size(64.dp)
-            )   // TODO coil image
-
-            Text(
-                text = it.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+            UserInfo(name = it.name, picUrl = it.picture)
 
             Divider(modifier = Modifier.fillMaxWidth())
         }
