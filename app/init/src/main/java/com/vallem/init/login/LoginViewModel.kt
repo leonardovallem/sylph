@@ -11,13 +11,15 @@ import com.google.firebase.auth.FirebaseUser
 import com.vallem.componentlibrary.util.ValidationRule
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.repository.AuthRepository
+import com.vallem.sylph.shared.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     var isRegister by mutableStateOf(false)
         private set
@@ -79,16 +81,26 @@ class LoginViewModel @Inject constructor(
 
         is LoginEvent.SignIn -> viewModelScope.launch {
             loginResult = Result.Loading
-            loginResult = repository.login(email, password)
+            loginResult = authRepository.login(email, password)
         }
 
         is LoginEvent.SignUp -> viewModelScope.launch {
             signUpResult = Result.Loading
-            signUpResult = repository.signup(name, email, password)
+            signUpResult = authRepository.signup(name, email, password)
+
+            when (val res = signUpResult) {
+                is Result.Success -> userRepository.save(
+                    id = res.data.uid,
+                    name = res.data.displayName.orEmpty(),
+                    picUrl = null
+                )
+
+                else -> Unit
+            }
         }
 
         is LoginEvent.SignOut -> {
-            repository.logout()
+            authRepository.logout()
             loginResult = null
             signUpResult = null
         }

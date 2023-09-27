@@ -8,11 +8,19 @@ import com.google.firebase.auth.FirebaseAuth
 import com.vallem.sylph.shared.data.datastore.AppSettings
 import com.vallem.sylph.shared.data.datastore.AppSettingsSerializer
 import com.vallem.sylph.shared.data.remote.EventRemoteDataSource
+import com.vallem.sylph.shared.data.remote.EventVotesRemoteDataSource
+import com.vallem.sylph.shared.data.remote.UserRemoteDataSource
 import com.vallem.sylph.shared.data.remote.impl.DynamoEventDataSource
+import com.vallem.sylph.shared.data.remote.impl.DynamoEventVotesDataSource
+import com.vallem.sylph.shared.data.remote.impl.DynamoUserDataSource
 import com.vallem.sylph.shared.data.repository.AuthRepositoryImpl
+import com.vallem.sylph.shared.data.repository.EventUserVotesRepositoryImpl
 import com.vallem.sylph.shared.data.repository.EventsRepositoryImpl
+import com.vallem.sylph.shared.data.repository.UserRepositoryImpl
 import com.vallem.sylph.shared.domain.repository.AuthRepository
+import com.vallem.sylph.shared.domain.repository.EventUserVotesRepository
 import com.vallem.sylph.shared.domain.repository.EventsRepository
+import com.vallem.sylph.shared.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,6 +47,24 @@ object AppModule {
     fun provideEventsRepository(
         dataSource: EventRemoteDataSource
     ): EventsRepository = EventsRepositoryImpl(dataSource)
+
+    @Provides
+    fun provideEventVotesDataSource(): EventVotesRemoteDataSource = DynamoEventVotesDataSource()
+
+    @Provides
+    fun provideEventVotesRepository(
+        dataSource: EventVotesRemoteDataSource
+    ): EventUserVotesRepository = EventUserVotesRepositoryImpl(dataSource)
+
+    @Provides
+    fun provideUserDataSource(): UserRemoteDataSource = DynamoUserDataSource()
+
+    @Provides
+    fun provideUserRepository(
+        dataSource: UserRemoteDataSource,
+        votesRepository: EventUserVotesRepository,
+        eventsRepository: EventsRepository
+    ): UserRepository = UserRepositoryImpl(dataSource, votesRepository, eventsRepository)
 
     @Singleton
     @Provides

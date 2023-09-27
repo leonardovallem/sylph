@@ -1,4 +1,4 @@
-package com.vallem.sylph.events.domain
+package com.vallem.sylph.shared.domain.model
 
 data class UserDetails(
     val name: String,

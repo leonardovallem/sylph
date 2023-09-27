@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,10 +45,10 @@ import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
 import com.vallem.componentlibrary.ui.user.UserInfo
 import com.vallem.componentlibrary.ui.user.UserInfoSkeleton
-import com.vallem.sylph.events.domain.UserDetails
-import com.vallem.sylph.events.domain.UserEventsMetaData
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.domain.model.UserDetails
+import com.vallem.sylph.shared.domain.model.UserEventsMetaData
 import com.vallem.sylph.shared.presentation.components.AlertLevel
 import com.vallem.sylph.shared.presentation.components.AlertMessage
 import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
@@ -69,6 +70,10 @@ fun UserDetailsScreen(
     val result by viewModel.result.collectAsState()
 
     BackHandler(onBack = navigator::navigateUp)
+
+    LaunchedEffect(userId) {
+        viewModel.retrieveUserDetails(userId)
+    }
 
     NavigationDrawerWrapper(
         drawerState = drawerState,

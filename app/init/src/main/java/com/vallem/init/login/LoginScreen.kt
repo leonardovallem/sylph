@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -55,7 +54,6 @@ import com.vallem.init.destinations.OnboardingScreenDestination
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
 import com.vallem.sylph.shared.domain.model.Result
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = com.vallem.sylph.shared.Routes.Screen.Login)
 @Composable
 fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hiltViewModel()) {
