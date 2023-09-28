@@ -1,5 +1,6 @@
 package com.vallem.sylph.navigation
 
+import com.ramcosta.composedestinations.manualcomposablecalls.ManualComposableCallsBuilder
 import com.ramcosta.composedestinations.spec.DestinationSpec
 import com.ramcosta.composedestinations.spec.NavGraphSpec
 import com.ramcosta.composedestinations.spec.Route
@@ -25,4 +26,13 @@ object SylphNavGraph : NavGraphSpec {
         UserDetailsScreenDestination,
         EventDetailsBottomSheetDestination,
     ).associateBy { it.route }
+}
+
+fun ManualComposableCallsBuilder.sylphManualCalls() {
+//    composable(HomeScreenDestination) {
+//        HomeScreen(
+//            navigator = destinationsNavigator,
+//            eventDetailsRecipient = resultRecipient<EventDetailsBottomSheetDestination, EventDetailsResult>()
+//        )
+//    }
 }

@@ -7,10 +7,12 @@ import com.vallem.sylph.shared.domain.model.UserDetails
 import com.vallem.sylph.shared.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class UserDetailsViewModel @Inject constructor(
@@ -26,7 +28,9 @@ class UserDetailsViewModel @Inject constructor(
         job?.cancel()
 
         job = viewModelScope.launch {
-            _result.value = repository.retrieveDetails(userId)
+            _result.value = withContext(Dispatchers.IO) {
+                repository.retrieveDetails(userId)
+            }
         }
     }
 }

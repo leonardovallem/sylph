@@ -16,6 +16,7 @@ import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
+import com.ramcosta.composedestinations.manualcomposablecalls.ManualComposableCallsBuilder
 import com.ramcosta.composedestinations.spec.NavGraphSpec
 import com.vallem.init.destinations.LoginScreenDestination
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
@@ -28,7 +29,10 @@ class SylphNavHost @Inject constructor(private val auth: FirebaseAuth) {
         ExperimentalMaterialApi::class
     )
     @Composable
-    operator fun invoke(navGraph: NavGraphSpec) {
+    operator fun invoke(
+        navGraph: NavGraphSpec,
+        manualCalls: ManualComposableCallsBuilder.() -> Unit = {},
+    ) {
         val density = LocalDensity.current
 
         val navController = rememberNavController()
@@ -53,7 +57,8 @@ class SylphNavHost @Inject constructor(private val auth: FirebaseAuth) {
                 engine = navHostEngine,
                 startRoute = auth.currentUser?.let {
                     HomeScreenDestination
-                } ?: LoginScreenDestination
+                } ?: LoginScreenDestination,
+                manualComposableCallsBuilder = manualCalls,
             )
         }
     }

@@ -74,6 +74,7 @@ import com.vallem.sylph.events.domain.EventDetails
 import com.vallem.sylph.events.map.EventHeatmap
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.destinations.UserDetailsScreenDestination
 import com.vallem.sylph.events.presentation.detail.EventDetailsResult
 import com.vallem.sylph.home.presentation.model.HomeShortcut
 import com.vallem.sylph.shared.BuildConfig
@@ -130,7 +131,11 @@ fun HomeScreen(
     }
 
     eventDetailsRecipient.onNavResult {
-        if (it is NavResult.Value) TODO()
+        if (it is NavResult.Value) when (val result = it.value) {
+            is EventDetailsResult.ShowUserDetails -> navigator.navigate(
+                UserDetailsScreenDestination(result.userId, viewModel.currentUser)
+            )
+        }
     }
 
     LaunchedEffect(Unit) {

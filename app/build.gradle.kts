@@ -62,6 +62,8 @@ dependencies {
     implementation(SylphDependencies.Libs.ThirdParty.AWS.DynamoDb)
 
     implementation(SylphDependencies.Libs.Android.Hilt)
+    implementation(project(mapOf("path" to ":app:events")))
+    implementation(project(mapOf("path" to ":app:home")))
     kapt(SylphDependencies.Libs.Android.HiltKapt)
 
     implementation(SylphDependencies.Libs.Android.DataStore)

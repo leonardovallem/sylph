@@ -15,19 +15,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,7 +35,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseUser
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.data.ProportionChart
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
@@ -51,10 +47,7 @@ import com.vallem.sylph.shared.domain.model.UserDetails
 import com.vallem.sylph.shared.domain.model.UserEventsMetaData
 import com.vallem.sylph.shared.presentation.components.AlertLevel
 import com.vallem.sylph.shared.presentation.components.AlertMessage
-import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
-import com.vallem.sylph.shared.presentation.model.NavigationShortcut
 import com.vallem.sylph.shared.util.isZeroOrOne
-import kotlinx.coroutines.launch
 
 @Destination(route = Routes.Screen.UserDetails)
 @Composable
@@ -64,9 +57,6 @@ fun UserDetailsScreen(
     currentUser: FirebaseUser?,
     viewModel: UserDetailsViewModel = hiltViewModel()
 ) {
-    val scope = rememberCoroutineScope()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-
     val result by viewModel.result.collectAsState()
 
     BackHandler(onBack = navigator::navigateUp)
@@ -75,45 +65,40 @@ fun UserDetailsScreen(
         viewModel.retrieveUserDetails(userId)
     }
 
-    NavigationDrawerWrapper(
-        drawerState = drawerState,
-        userInfo = currentUser?.displayName?.let { UserInfo(it, null) },
-        navigator = navigator,
-        selectedShortcut = NavigationShortcut.RegisteredEvents,
-    ) {
-        Scaffold(
-            topBar = {
-                SylphTopBar(
-                    title = "Meus eventos",
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch { drawerState.open() }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Menu,
-                                contentDescription = "Menu de navegação"
-                            )
-                        }
-                    },
+    Scaffold(
+        topBar = {
+            SylphTopBar(
+                title = "Detalhes do usuário",
+                navigationIcon = {
+                    IconButton(onClick = navigator::popBackStack) {
+                        Icon(
+                            imageVector = Icons.Rounded.Menu,
+                            contentDescription = "Menu de navegação"
+                        )
+                    }
+                },
+            )
+        },
+        modifier = Modifier.fillMaxSize(),
+    ) { pv ->
+        Box(
+            modifier = Modifier
+                .padding(pv)
+                .fillMaxSize(),
+        ) {
+            when (val res = result) {
+                is Result.Success -> res.data?.let { UserDetailsScreenBase(it) }
+
+                is Result.Failure -> AlertMessage(
+                    title = "Algo deu errado...",
+                    description = "Ocorreu um erro ao recuperar os detalhes do usuário.",
+                    level = AlertLevel.Error,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(24.dp),
                 )
-            },
-            modifier = Modifier.fillMaxSize(),
-        ) { pv ->
-            Box(modifier = Modifier.padding(pv)) {
-                when (val res = result) {
-                    is Result.Success -> res.data?.let { UserDetailsScreenBase(it) }
 
-                    is Result.Failure -> AlertMessage(
-                        title = "Algo deu errado...",
-                        description = "Ocorreu um erro ao recuperar os detalhes do usuário.",
-                        level = AlertLevel.Error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-
-                    Result.Loading -> UserDetailsSkeleton()
-                }
+                Result.Loading -> UserDetailsSkeleton()
             }
         }
     }
