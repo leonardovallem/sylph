@@ -6,8 +6,8 @@ import kotlinx.parcelize.Parcelize
 
 sealed interface EventDetails : Parcelable {
     @Parcelize
-    data class Sync(val event: Event) : EventDetails
+    data class CurrentUserEvent(val event: Event) : EventDetails
 
     @Parcelize
-    data class Async(val eventId: String, val showUserInfo: Boolean) : EventDetails
+    data class AnyUserEvent(val eventId: String) : EventDetails
 }

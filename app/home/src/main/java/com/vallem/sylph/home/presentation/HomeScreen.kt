@@ -303,7 +303,7 @@ fun HomeScreen(
                                         scope.launch(Dispatchers.Main) {
                                             navigator.navigate(
                                                 EventDetailsBottomSheetDestination(
-                                                    EventDetails.Async(id, true)
+                                                    EventDetails.AnyUserEvent(id)
                                                 )
                                             )
                                         }

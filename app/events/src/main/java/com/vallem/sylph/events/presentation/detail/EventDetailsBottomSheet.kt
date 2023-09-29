@@ -21,8 +21,11 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.SentimentDissatisfied
 import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material.icons.rounded.ThumbDown
+import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +59,7 @@ import com.vallem.sylph.shared.domain.model.event.DangerEvent
 import com.vallem.sylph.shared.domain.model.event.DangerReason
 import com.vallem.sylph.shared.domain.model.event.DangerVictim
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.EventVote
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.extensions.asGeoIntent
@@ -73,14 +77,14 @@ fun EventDetailsBottomSheet(
 ) {
     SylphBottomSheet { pv ->
         when (details) {
-            is EventDetails.Async -> EventDetailsBottomSheet(
+            is EventDetails.AnyUserEvent -> EventDetailsBottomSheet(
                 eventId = details.eventId,
-                showUserInfo = details.showUserInfo,
+                showUserInfo = true,
                 onShowUserInfo = { navigator.navigateBack(EventDetailsResult.ShowUserDetails(it)) },
                 modifier = Modifier.padding(pv)
             )
 
-            is EventDetails.Sync -> EventDetailsBottomSheetBase(
+            is EventDetails.CurrentUserEvent -> EventDetailsBottomSheetBase(
                 event = details.event,
                 showUserInfo = false
             )
@@ -108,6 +112,9 @@ fun EventDetailsBottomSheet(
                 event = it,
                 showUserInfo = showUserInfo,
                 onUserInfoClick = onShowUserInfo,
+                onVote = { vote ->
+                    viewModel.vote(it, vote)
+                }
             )
         }
 
@@ -121,7 +128,8 @@ fun EventDetailsBottomSheet(
 private fun EventDetailsBottomSheetBase(
     event: Event,
     showUserInfo: Boolean,
-    onUserInfoClick: (String) -> Unit = {}
+    onUserInfoClick: (String) -> Unit = {},
+    onVote: (EventVote) -> Unit = {},
 ) {
     val context = LocalContext.current
     val sortedReasons = remember { event.reasons.sortedBy { it.label.length } }
@@ -249,23 +257,60 @@ private fun EventDetailsBottomSheetBase(
             )
         }
 
-        if (showUserInfo) Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .clickable { onUserInfoClick(event.userId) }
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(horizontal = 24.dp, vertical = 16.dp)
-        ) {
-            Text(
-                text = "Ver informações do publicador",
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.weight(1f)
-            )
+        Column(modifier = Modifier.padding(top = 8.dp)) {
+            // TODO hide if publisher is current user
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "Esse evento foi útil?",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 16.dp)
+                        .padding(start = 8.dp),
+                )
 
-            Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
-        } else Spacer(modifier = Modifier.height(16.dp))
+                IconButton(onClick = { onVote(EventVote.DownVote) }) {
+                    Icon(
+                        imageVector = Icons.Rounded.ThumbDown,
+                        contentDescription = "Reprovar",
+                        tint = MaterialTheme.zoneEventColors.dangerSelected
+                    )
+                }
+
+                IconButton(onClick = { onVote(EventVote.UpVote) }) {
+                    Icon(
+                        imageVector = Icons.Rounded.ThumbUp,
+                        contentDescription = "Aprovar",
+                        tint = MaterialTheme.zoneEventColors.safetySelected
+                    )
+                }
+            }
+
+            if (showUserInfo) Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onUserInfoClick(event.userId) }
+                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    text = "Ver informações do publicador",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
+            } else Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 

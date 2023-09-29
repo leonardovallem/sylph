@@ -119,7 +119,7 @@ private fun UserEventsScreenContent(
                         UserEvent(
                             event = it,
                             onClick = {
-                                navigator.navigate(EventDetailsBottomSheetDestination(EventDetails.Sync(it))) {
+                                navigator.navigate(EventDetailsBottomSheetDestination(EventDetails.CurrentUserEvent(it))) {
                                     // this avoids bottom sheets to stack in the navigation stack without being cleared
                                     popUpTo(Routes.Screen.UserEvents)
                                 }
