@@ -28,15 +28,15 @@ class UserRepositoryImpl(
         val userVotes = votesRepository.retrieveVoteCountsForUserEvents(userId).getOrNull()
         val userEvents = eventsRepository.retrieveUserEvents(userId).getOrNull()
 
-        if (userInfo == null || userVotes == null || userEvents == null) Result.Failure(DynamoDbInstantiationException())
+        if (userInfo == null || userEvents == null) Result.Failure(DynamoDbInstantiationException())
         else Result.Success(
             UserDetails(
                 name = userInfo.name,
                 picUrl = userInfo.picUrl,
                 eventsMetaData = UserEventsMetaData(
                     totalPublishedEvents = userEvents.size,
-                    eventsUpVotes = userVotes.upVotes,
-                    eventsDownVotes = userVotes.downVotes
+                    eventsUpVotes = userVotes?.upVotes ?: 0,
+                    eventsDownVotes = userVotes?.downVotes ?: 0,
                 )
             )
         )

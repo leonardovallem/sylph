@@ -133,7 +133,7 @@ fun HomeScreen(
     eventDetailsRecipient.onNavResult {
         if (it is NavResult.Value) when (val result = it.value) {
             is EventDetailsResult.ShowUserDetails -> navigator.navigate(
-                UserDetailsScreenDestination(result.userId, viewModel.currentUser)
+                UserDetailsScreenDestination(result.userId)
             )
         }
     }

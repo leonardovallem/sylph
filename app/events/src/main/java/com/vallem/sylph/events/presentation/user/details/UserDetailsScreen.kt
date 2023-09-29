@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +32,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.firebase.auth.FirebaseUser
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
@@ -54,7 +53,6 @@ import com.vallem.sylph.shared.util.isZeroOrOne
 fun UserDetailsScreen(
     userId: String,
     navigator: DestinationsNavigator,
-    currentUser: FirebaseUser?,
     viewModel: UserDetailsViewModel = hiltViewModel()
 ) {
     val result by viewModel.result.collectAsState()
@@ -72,7 +70,7 @@ fun UserDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = navigator::popBackStack) {
                         Icon(
-                            imageVector = Icons.Rounded.Menu,
+                            imageVector = Icons.Rounded.ArrowBack,
                             contentDescription = "Menu de navegação"
                         )
                     }
@@ -111,7 +109,8 @@ private fun UserDetailsScreenBase(userDetails: UserDetails) {
 
     val chartEntries = remember {
         with(userDetails.eventsMetaData) {
-            listOf(
+            if (totalEventsVotes == 0) null
+            else listOf(
                 ProportionChart.Entry(
                     proportion = eventsUpVotes / totalEventsVotes.toFloat(),
                     label = "Aprovações de seus eventos por outros usuários",
@@ -166,10 +165,12 @@ private fun UserDetailsScreenBase(userDetails: UserDetails) {
                 .padding(horizontal = 12.dp, vertical = 12.dp)
         )
 
-        ProportionChart(
-            entries = chartEntries,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        chartEntries?.let {
+            ProportionChart(
+                entries = it,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        }
     }
 }
 
