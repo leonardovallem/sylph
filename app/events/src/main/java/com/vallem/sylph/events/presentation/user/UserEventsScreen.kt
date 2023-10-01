@@ -41,8 +41,7 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.button.SylphButton
-import com.vallem.sylph.events.domain.EventDetails
-import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.destinations.CurrentUserEventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.user.components.UserEvent
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
@@ -119,7 +118,7 @@ private fun UserEventsScreenContent(
                         UserEvent(
                             event = it,
                             onClick = {
-                                navigator.navigate(EventDetailsBottomSheetDestination(EventDetails.CurrentUserEvent(it))) {
+                                navigator.navigate(CurrentUserEventDetailsBottomSheetDestination(it)) {
                                     // this avoids bottom sheets to stack in the navigation stack without being cleared
                                     popUpTo(Routes.Screen.UserEvents)
                                 }

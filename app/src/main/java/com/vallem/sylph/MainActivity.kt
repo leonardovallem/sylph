@@ -7,7 +7,7 @@ import com.ramcosta.composedestinations.manualcomposablecalls.composable
 import com.ramcosta.composedestinations.scope.resultRecipient
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.init.SylphNavHost
-import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.destinations.AnyUserEventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.detail.EventDetailsResult
 import com.vallem.sylph.home.presentation.HomeScreen
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                     composable(HomeScreenDestination) {
                         HomeScreen(
                             navigator = destinationsNavigator,
-                            eventDetailsRecipient = resultRecipient<EventDetailsBottomSheetDestination, EventDetailsResult>()
+                            eventDetailsRecipient = resultRecipient<AnyUserEventDetailsBottomSheetDestination, EventDetailsResult>()
                         )
                     }
                 }

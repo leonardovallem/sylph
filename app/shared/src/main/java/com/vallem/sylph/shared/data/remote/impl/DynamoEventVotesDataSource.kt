@@ -2,6 +2,8 @@ package com.vallem.sylph.shared.data.remote.impl
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest
 import com.amazonaws.services.dynamodbv2.model.QueryRequest
 import com.vallem.sylph.shared.data.dynamo.DynamoDbClientStore
 import com.vallem.sylph.shared.data.dynamo.DynamoTables
@@ -16,6 +18,30 @@ class DynamoEventVotesDataSource(
     override suspend fun vote(vote: EventVote) = client?.putItem(
         DynamoTables.EventUserVotes, vote.toDynamoItem()
     )
+
+    override suspend fun clearVote(eventId: String, userId: String) = client?.deleteItem(
+        DeleteItemRequest(
+            DynamoTables.EventUserVotes,
+            mapOf(
+                "user_id" to AttributeValue(userId),
+                "event_id" to AttributeValue(eventId),
+            ),
+        )
+    )
+
+    override suspend fun retrieveUserVoteForEvent(userId: String, eventId: String) =
+        client?.getItem(
+            GetItemRequest(
+                DynamoTables.EventUserVotes,
+                mapOf(
+                    "user_id" to AttributeValue(userId),
+                    "event_id" to AttributeValue(eventId),
+                ),
+            )
+        )
+            ?.item
+            ?.let(EventVoteMapper::fromDynamoItem)
+            ?.isUpVote
 
     override suspend fun retrieveVotesForEvent(eventId: String) = client?.query(
         QueryRequest(DynamoTables.EventUserVotes).apply {

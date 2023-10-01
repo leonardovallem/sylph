@@ -70,10 +70,9 @@ import com.vallem.componentlibrary.ui.loading.SylphLoading
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
-import com.vallem.sylph.events.domain.EventDetails
 import com.vallem.sylph.events.map.EventHeatmap
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
-import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.destinations.AnyUserEventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.destinations.UserDetailsScreenDestination
 import com.vallem.sylph.events.presentation.detail.EventDetailsResult
 import com.vallem.sylph.home.presentation.model.HomeShortcut
@@ -302,9 +301,7 @@ fun HomeScreen(
                                     it.id()?.let { id ->
                                         scope.launch(Dispatchers.Main) {
                                             navigator.navigate(
-                                                EventDetailsBottomSheetDestination(
-                                                    EventDetails.AnyUserEvent(id)
-                                                )
+                                                AnyUserEventDetailsBottomSheetDestination(id)
                                             )
                                         }
                                     }

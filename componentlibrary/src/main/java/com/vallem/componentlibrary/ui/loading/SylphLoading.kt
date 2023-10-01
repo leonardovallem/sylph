@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -67,6 +69,31 @@ object SylphLoading {
             }
         }
     }
+
+    @Composable
+    fun Circular(
+        modifier: Modifier = Modifier,
+        strokeCap: StrokeCap = StrokeCap.Round,
+        strokeWidth: Dp = 6.dp,
+    ) {
+        val transition = rememberInfiniteTransition(label = "")
+        val color = transition.animateColor(
+            initialValue = TransFlagColors.Pink,
+            targetValue = TransFlagColors.Blue,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = ""
+        )
+
+        CircularProgressIndicator(
+            color = color.value,
+            strokeCap = strokeCap,
+            strokeWidth = strokeWidth,
+            modifier = modifier,
+        )
+    }
 }
 
 @Preview
@@ -83,6 +110,21 @@ private fun LinearSylphLoadingPreview() {
                 modifier = Modifier.fillMaxWidth(),
                 barHeight = 12.dp
             )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun CircularSylphLoadingPreview() {
+    SylphTheme {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .background(Color(0xFF161616))
+                .padding(24.dp),
+        ) {
+            SylphLoading.Circular()
         }
     }
 }

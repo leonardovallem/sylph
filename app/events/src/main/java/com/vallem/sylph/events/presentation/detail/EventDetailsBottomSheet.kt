@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,8 +50,8 @@ import com.ramcosta.composedestinations.result.ResultBackNavigator
 import com.ramcosta.composedestinations.spec.DestinationStyleBottomSheet
 import com.vallem.componentlibrary.ui.bottomsheet.SylphBottomSheet
 import com.vallem.componentlibrary.ui.chip.SylphChip
+import com.vallem.componentlibrary.ui.loading.SylphLoading
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
-import com.vallem.sylph.events.domain.EventDetails
 import com.vallem.sylph.events.presentation.components.DoubleRow
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
@@ -67,55 +68,120 @@ import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapLocation
 
 @Destination(
-    route = Routes.BottomSheet.EventDetails,
+    route = Routes.BottomSheet.CurrentUserEventDetails,
     style = DestinationStyleBottomSheet::class
 )
 @Composable
-fun EventDetailsBottomSheet(
-    details: EventDetails,
+fun CurrentUserEventDetailsBottomSheet(event: Event) {
+    SylphBottomSheet { _ ->
+        EventDetailsBottomSheetBase(event = event)
+    }
+}
+
+@Destination(
+    route = Routes.BottomSheet.AnyUserEventDetails,
+    style = DestinationStyleBottomSheet::class
+)
+@Composable
+fun AnyUserEventDetailsBottomSheet(
+    eventId: String,
     navigator: ResultBackNavigator<EventDetailsResult>
 ) {
     SylphBottomSheet { pv ->
-        when (details) {
-            is EventDetails.AnyUserEvent -> EventDetailsBottomSheet(
-                eventId = details.eventId,
-                showUserInfo = true,
-                onShowUserInfo = { navigator.navigateBack(EventDetailsResult.ShowUserDetails(it)) },
-                modifier = Modifier.padding(pv)
-            )
-
-            is EventDetails.CurrentUserEvent -> EventDetailsBottomSheetBase(
-                event = details.event,
-                showUserInfo = false
-            )
-        }
+        EventDetailsBottomSheet(
+            eventId = eventId,
+            onShowUserInfo = { navigator.navigateBack(EventDetailsResult.ShowUserDetails(it)) },
+            modifier = Modifier.padding(pv)
+        )
     }
 }
 
 @Composable
-fun EventDetailsBottomSheet(
+private fun EventDetailsBottomSheet(
     eventId: String,
-    showUserInfo: Boolean,
     modifier: Modifier = Modifier,
     onShowUserInfo: (String) -> Unit,
     viewModel: EventDetailsViewModel = hiltViewModel()
 ) {
-    val result by viewModel.result.collectAsState()
+    val eventResult by viewModel.eventResult.collectAsState()
+    val voteResult by viewModel.voteResult.collectAsState()
+    val vote = voteResult.getOrNull()
+    val userId = viewModel.currentUser?.uid
 
     LaunchedEffect(eventId) {
         viewModel.retrieveEventDetails(eventId)
     }
 
-    when (val res = result) {
-        is Result.Success -> res.data?.let {
-            EventDetailsBottomSheetBase(
-                event = it,
-                showUserInfo = showUserInfo,
-                onUserInfoClick = onShowUserInfo,
-                onVote = { vote ->
-                    viewModel.vote(it, vote)
+    when (val res = eventResult) {
+        is Result.Success -> res.data?.let { event ->
+            EventDetailsBottomSheetBase(event = event) {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    // TODO hide if publisher is current user
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "Esse evento foi útil?",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = 16.dp)
+                                .padding(start = 8.dp),
+                        )
+
+                        if (voteResult is Result.Loading) SylphLoading.Circular()
+                        else {
+                            IconButton(onClick = { viewModel.vote(event, EventVote.DownVote) }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ThumbDown,
+                                    contentDescription = "Reprovar",
+                                    tint = when (vote) {
+                                        EventVote.DownVote -> MaterialTheme.zoneEventColors.dangerSelected
+                                        EventVote.UpVote -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        null -> MaterialTheme.zoneEventColors.danger
+                                    }
+                                )
+                            }
+
+                            IconButton(onClick = { viewModel.vote(event, EventVote.UpVote) }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ThumbUp,
+                                    contentDescription = "Aprovar",
+                                    tint = when (vote) {
+                                        EventVote.UpVote -> MaterialTheme.zoneEventColors.safetySelected
+                                        EventVote.DownVote -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        null -> MaterialTheme.zoneEventColors.safety
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { userId?.let { onShowUserInfo(it) } }
+                            .background(MaterialTheme.colorScheme.tertiaryContainer)
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = "Ver informações do publicador",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
+                    }
                 }
-            )
+
+            }
         }
 
         is Result.Failure -> DetailsRetrievalError(modifier = modifier)
@@ -127,9 +193,7 @@ fun EventDetailsBottomSheet(
 @Composable
 private fun EventDetailsBottomSheetBase(
     event: Event,
-    showUserInfo: Boolean,
-    onUserInfoClick: (String) -> Unit = {},
-    onVote: (EventVote) -> Unit = {},
+    bottomContent: @Composable ColumnScope.() -> Unit = { Spacer(modifier = Modifier.height(16.dp)) }
 ) {
     val context = LocalContext.current
     val sortedReasons = remember { event.reasons.sortedBy { it.label.length } }
@@ -257,60 +321,7 @@ private fun EventDetailsBottomSheetBase(
             )
         }
 
-        Column(modifier = Modifier.padding(top = 8.dp)) {
-            // TODO hide if publisher is current user
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = "Esse evento foi útil?",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = 16.dp)
-                        .padding(start = 8.dp),
-                )
-
-                IconButton(onClick = { onVote(EventVote.DownVote) }) {
-                    Icon(
-                        imageVector = Icons.Rounded.ThumbDown,
-                        contentDescription = "Reprovar",
-                        tint = MaterialTheme.zoneEventColors.dangerSelected
-                    )
-                }
-
-                IconButton(onClick = { onVote(EventVote.UpVote) }) {
-                    Icon(
-                        imageVector = Icons.Rounded.ThumbUp,
-                        contentDescription = "Aprovar",
-                        tint = MaterialTheme.zoneEventColors.safetySelected
-                    )
-                }
-            }
-
-            if (showUserInfo) Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onUserInfoClick(event.userId) }
-                    .background(MaterialTheme.colorScheme.tertiaryContainer)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-            ) {
-                Text(
-                    text = "Ver informações do publicador",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
-            } else Spacer(modifier = Modifier.height(16.dp))
-        }
+        bottomContent()
     }
 }
 
@@ -333,7 +344,6 @@ private fun SafetyEventDetailScreenPreview() {
                 userId = "",
                 id = null
             ),
-            true
         )
     }
 }
@@ -358,7 +368,6 @@ private fun DangerEventDetailScreenPreview() {
                 userId = "",
                 id = null
             ),
-            true
         )
     }
 }

@@ -1,13 +1,13 @@
 package com.vallem.sylph.navigation
 
-import com.ramcosta.composedestinations.manualcomposablecalls.ManualComposableCallsBuilder
 import com.ramcosta.composedestinations.spec.DestinationSpec
 import com.ramcosta.composedestinations.spec.NavGraphSpec
 import com.ramcosta.composedestinations.spec.Route
 import com.vallem.init.destinations.LoginScreenDestination
 import com.vallem.init.destinations.OnboardingScreenDestination
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
-import com.vallem.sylph.events.presentation.destinations.EventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.destinations.AnyUserEventDetailsBottomSheetDestination
+import com.vallem.sylph.events.presentation.destinations.CurrentUserEventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.destinations.UserDetailsScreenDestination
 import com.vallem.sylph.events.presentation.destinations.UserEventsScreenDestination
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
@@ -24,15 +24,7 @@ object SylphNavGraph : NavGraphSpec {
         AddEventScreenDestination,
         UserEventsScreenDestination,
         UserDetailsScreenDestination,
-        EventDetailsBottomSheetDestination,
+        CurrentUserEventDetailsBottomSheetDestination,
+        AnyUserEventDetailsBottomSheetDestination,
     ).associateBy { it.route }
-}
-
-fun ManualComposableCallsBuilder.sylphManualCalls() {
-//    composable(HomeScreenDestination) {
-//        HomeScreen(
-//            navigator = destinationsNavigator,
-//            eventDetailsRecipient = resultRecipient<EventDetailsBottomSheetDestination, EventDetailsResult>()
-//        )
-//    }
 }

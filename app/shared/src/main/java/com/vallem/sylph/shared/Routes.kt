@@ -13,7 +13,8 @@ object Routes {
     }
 
     object BottomSheet {
-        const val EventDetails = "event_detail_bottom_sheet"
+        const val CurrentUserEventDetails = "current_user_event_detail_bottom_sheet"
+        const val AnyUserEventDetails = "any_user_event_detail_bottom_sheet"
     }
 }
 
