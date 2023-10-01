@@ -39,7 +39,7 @@ object ProportionChart {
                     .padding(bottom = 8.dp)
             ) {
                 entries.forEach {
-                    ChartLine(
+                    if (it.proportion > 0) ChartLine(
                         color = it.color,
                         value = it.value,
                         modifier = Modifier.weight(it.proportion)

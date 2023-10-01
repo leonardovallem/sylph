@@ -5,6 +5,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest
 import com.amazonaws.services.dynamodbv2.model.QueryRequest
+import com.amazonaws.services.dynamodbv2.model.ScanRequest
 import com.vallem.sylph.shared.data.dynamo.DynamoDbClientStore
 import com.vallem.sylph.shared.data.dynamo.DynamoTables
 import com.vallem.sylph.shared.data.dynamo.dto.EventVote
@@ -52,9 +53,9 @@ class DynamoEventVotesDataSource(
         ?.items
         ?.mapNotNull(EventVoteMapper::fromDynamoItem)
 
-    override suspend fun retrieveVotesForUserEvents(userId: String) = client?.query(
-        QueryRequest(DynamoTables.EventUserVotes).apply {
-            keyConditionExpression = "user_id = :userId"
+    override suspend fun retrieveVotesForUserEvents(userId: String) = client?.scan(
+        ScanRequest(DynamoTables.EventUserVotes).apply {
+            filterExpression = "user_id = :userId"
             expressionAttributeValues = mapOf(":userId" to AttributeValue(userId))
         }
     )

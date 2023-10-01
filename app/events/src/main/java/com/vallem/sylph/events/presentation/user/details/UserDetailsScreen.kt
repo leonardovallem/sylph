@@ -104,8 +104,8 @@ fun UserDetailsScreen(
 
 @Composable
 private fun UserDetailsScreenBase(userDetails: UserDetails) {
-    val upVotesColor = MaterialTheme.zoneEventColors.safety
-    val downVotesColor = MaterialTheme.zoneEventColors.danger
+    val upVotesColor = MaterialTheme.zoneEventColors.safetySelected
+    val downVotesColor = MaterialTheme.zoneEventColors.dangerSelected
 
     val chartEntries = remember {
         with(userDetails.eventsMetaData) {
