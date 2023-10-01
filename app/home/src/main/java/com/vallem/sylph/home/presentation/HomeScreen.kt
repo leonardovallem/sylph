@@ -32,12 +32,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -58,6 +58,7 @@ import com.mapbox.maps.extension.style.layers.addPersistentLayer
 import com.mapbox.maps.extension.style.layers.getLayer
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.getSource
+import com.mapbox.maps.toCameraOptions
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
@@ -79,6 +80,8 @@ import com.vallem.sylph.home.presentation.model.HomeShortcut
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.SylphDestination
+import com.vallem.sylph.shared.data.datastore.MapCameraState
+import com.vallem.sylph.shared.data.datastore.toCameraState
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.extensions.point
 import com.vallem.sylph.shared.map.model.PointWrapper
@@ -89,6 +92,7 @@ import com.vallem.sylph.shared.map.util.rememberMapState
 import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
 import com.vallem.sylph.shared.util.EmptyOpenResultRecipient
+import com.vallem.sylph.shared.util.OnLifecycleEvent
 import com.vallem.sylph.shared.util.truthyCallback
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -109,6 +113,10 @@ fun HomeScreen(
     val isDarkMode = isSystemInDarkTheme()
 
     val eventsFeatures by viewModel.eventsFeatures.collectAsState(viewModel.viewModelScope.coroutineContext)
+    val mapCameraState by viewModel.mapCameraState.collectAsState(null)
+    val cameraState = rememberSaveable(mapCameraState) {
+        (mapCameraState ?: MapCameraState.Default).toCameraState()
+    }
 
     val location by locationProvider.location.collectAsState(initial = null)
     val isLocationEnabled by locationProvider.isLocationEnabled.collectAsState(initial = false)
@@ -118,15 +126,7 @@ fun HomeScreen(
     val locationSettingLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) {
-        // check if resultCode == RESULT_OK to perform an action if the location was or was not enabled
-    }
-
-    ColorSystemBars()
-
-    DisposableEffect(Unit) {
-        onDispose {
-            location?.let(viewModel::saveCurrentLocation)
-        }
+        // check if resultCode != RESULT_OK to perform an action if the location was or was not enabled
     }
 
     eventDetailsRecipient.onNavResult {
@@ -136,6 +136,23 @@ fun HomeScreen(
             )
         }
     }
+
+    ColorSystemBars()
+
+    OnLifecycleEvent(
+        onPause = {
+            mapState.mapView
+                ?.getMapboxMap()
+                ?.cameraState
+                ?.let(viewModel::saveMapCameraState)
+        },
+        onResume = {
+            mapCameraState
+                ?.toCameraState()
+                ?.toCameraOptions()
+                ?.let(mapState::setCameraOptions)
+        },
+    )
 
     LaunchedEffect(Unit) {
         viewModel.updateEvents()
@@ -264,6 +281,7 @@ fun HomeScreen(
                 MapBox(
                     state = mapState,
                     accessToken = BuildConfig.MAP_BOX_API_TOKEN,
+                    cameraState = cameraState,
                     onClick = { clickedPoint ->
                         val mapbox = mapState.mapView?.getMapboxMap() ?: return@MapBox false
                         val coordinates = mapbox.project(clickedPoint, mapbox.cameraState.zoom)

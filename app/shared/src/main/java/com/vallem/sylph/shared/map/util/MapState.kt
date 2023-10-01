@@ -40,6 +40,13 @@ class MapState(center: Point?) {
         this.center = center
     }
 
+    fun setCameraOptions(cameraOptions: CameraOptions) = mapView
+        ?.getMapboxMap()
+        ?.run {
+            setCamera(cameraOptions)
+            cameraOptions.center?.let { recenter(it) }
+        }
+
     fun recenter(center: Point) {
         this.center = center
     }
@@ -84,21 +91,22 @@ class MapState(center: Point?) {
     }
 }
 
-fun MapView.defaultStyle(isDarkMode: Boolean, action: Style.() -> Unit = {}) = getMapboxMap().loadStyleUri(
-    styleUri = if (isDarkMode) Style.TRAFFIC_NIGHT else Style.TRAFFIC_DAY
-) {
-    location.updateSettings {
-        enabled = true
-        locationPuck = LocationPuck2D(
-            topImage = context.getDrawable(
-                R.drawable.ic_location_on_24,
-                com.vallem.componentlibrary.R.color.purple_200
+fun MapView.defaultStyle(isDarkMode: Boolean, action: Style.() -> Unit = {}) =
+    getMapboxMap().loadStyleUri(
+        styleUri = if (isDarkMode) Style.TRAFFIC_NIGHT else Style.TRAFFIC_DAY
+    ) {
+        location.updateSettings {
+            enabled = true
+            locationPuck = LocationPuck2D(
+                topImage = context.getDrawable(
+                    R.drawable.ic_location_on_24,
+                    com.vallem.componentlibrary.R.color.purple_200
+                )
             )
-        )
-    }
+        }
 
-    action(it)
-}
+        action(it)
+    }
 
 @Composable
 fun rememberMapState(center: Point?): MapState {

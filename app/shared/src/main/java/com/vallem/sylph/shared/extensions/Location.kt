@@ -7,5 +7,6 @@ import com.vallem.sylph.shared.map.model.MapCenter
 val Location.point: Point
     get() = Point.fromLngLat(longitude, latitude)
 
-val Location.mapCenter: MapCenter
-    get() = MapCenter(latitude, longitude)
+fun Point.asMapCenter() = MapCenter(latitude(), longitude())
+
+fun MapCenter.asPoint(): Point = Point.fromLngLat(longitude, latitude)
