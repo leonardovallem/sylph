@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.LocationSearching
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MyLocation
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -189,10 +190,22 @@ fun HomeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Menu,
-                                    contentDescription = "Menu de navegação"
+                                    contentDescription = "Menu de navegação",
+                                    tint = TransFlagColors.White,
                                 )
                             }
                         },
+                        actions = {
+                            if (!eventsFeatures.isLoading) IconButton(
+                                onClick = viewModel::updateEvents,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Refresh,
+                                    contentDescription = "Recarregar eventos",
+                                    tint = TransFlagColors.White,
+                                )
+                            }
+                        }
                     )
 
                     AnimatedVisibility(visible = eventsFeatures == Result.Loading) {
