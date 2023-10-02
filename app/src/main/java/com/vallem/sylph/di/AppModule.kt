@@ -47,8 +47,9 @@ object AppModule {
 
     @Provides
     fun provideEventsRepository(
-        dataSource: EventRemoteDataSource
-    ): EventsRepository = EventsRepositoryImpl(dataSource)
+        dataSource: EventRemoteDataSource,
+        votesRepository: EventUserVotesRepository,
+    ): EventsRepository = EventsRepositoryImpl(dataSource, votesRepository)
 
     @Provides
     fun provideEventVotesDataSource(): EventVotesRemoteDataSource = DynamoEventVotesDataSource()

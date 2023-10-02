@@ -22,12 +22,9 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.SentimentDissatisfied
 import androidx.compose.material.icons.rounded.SentimentSatisfied
-import androidx.compose.material.icons.rounded.ThumbDown
-import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -113,8 +110,8 @@ private fun EventDetailsBottomSheet(
     }
 
     when (val res = eventResult) {
-        is Result.Success -> res.data?.let { event ->
-            EventDetailsBottomSheetBase(event = event) {
+        is Result.Success -> res.data?.let { details ->
+            EventDetailsBottomSheetBase(event = details.event) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     // TODO hide if publisher is current user
                     Row(
@@ -142,29 +139,19 @@ private fun EventDetailsBottomSheet(
                             )
 
                             else -> {
-                                IconButton(onClick = { viewModel.vote(event, EventVote.DownVote) }) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ThumbDown,
-                                        contentDescription = "Reprovar",
-                                        tint = when (vote) {
-                                            EventVote.DownVote -> MaterialTheme.zoneEventColors.dangerSelected
-                                            EventVote.UpVote -> MaterialTheme.colorScheme.onSurfaceVariant
-                                            null -> MaterialTheme.zoneEventColors.danger
-                                        }
-                                    )
-                                }
+                                EventVoteButton(
+                                    userVote = vote,
+                                    buttonVote = EventVote.DownVote,
+                                    count = details.voteCount.downVotes,
+                                    onClick = { viewModel.vote(details.event, EventVote.DownVote) },
+                                )
 
-                                IconButton(onClick = { viewModel.vote(event, EventVote.UpVote) }) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ThumbUp,
-                                        contentDescription = "Aprovar",
-                                        tint = when (vote) {
-                                            EventVote.UpVote -> MaterialTheme.zoneEventColors.safetySelected
-                                            EventVote.DownVote -> MaterialTheme.colorScheme.onSurfaceVariant
-                                            null -> MaterialTheme.zoneEventColors.safety
-                                        }
-                                    )
-                                }
+                                EventVoteButton(
+                                    userVote = vote,
+                                    buttonVote = EventVote.UpVote,
+                                    count = details.voteCount.upVotes,
+                                    onClick = { viewModel.vote(details.event, EventVote.UpVote) },
+                                )
                             }
                         }
                     }
@@ -173,7 +160,7 @@ private fun EventDetailsBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onShowUserInfo(event.userId) }
+                            .clickable { onShowUserInfo(details.event.userId) }
                             .background(MaterialTheme.colorScheme.tertiaryContainer)
                             .padding(horizontal = 24.dp, vertical = 16.dp)
                     ) {

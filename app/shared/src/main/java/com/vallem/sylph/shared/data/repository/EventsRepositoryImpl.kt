@@ -6,10 +6,14 @@ import com.vallem.sylph.shared.data.mapper.toEvent
 import com.vallem.sylph.shared.data.remote.EventRemoteDataSource
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.EventDetails
+import com.vallem.sylph.shared.domain.model.event.VoteCount
+import com.vallem.sylph.shared.domain.repository.EventUserVotesRepository
 import com.vallem.sylph.shared.domain.repository.EventsRepository
 
 class EventsRepositoryImpl(
-    private val dataSource: EventRemoteDataSource
+    private val dataSource: EventRemoteDataSource,
+    private val votesRepository: EventUserVotesRepository,
 ) : EventsRepository {
     override suspend fun saveEvent(event: Event) = try {
         dataSource.save(event.toDto())
@@ -20,9 +24,18 @@ class EventsRepositoryImpl(
     }
 
     override suspend fun retrieveEventDetails(eventId: String) = try {
-        dataSource.retrieveEventDetails(eventId)
-            ?.let { Result.Success(it.toEvent()) }
-            ?: Result.Failure(DynamoDbInstantiationException())
+        val voteCount = votesRepository.retrieveVoteCountsForEvent(eventId).getOrNull()
+
+        dataSource.retrieveEventDetails(eventId)?.let { event ->
+            event.toEvent()?.let {
+                Result.Success(
+                    EventDetails(
+                        event = it,
+                        voteCount = voteCount ?: VoteCount(0, 0)
+                    )
+                )
+            }
+        } ?: Result.Failure(DynamoDbInstantiationException())
     } catch (e: Exception) {
         Result.Failure(e)
     }

@@ -3,9 +3,9 @@ package com.vallem.sylph.events.presentation.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
+import com.vallem.sylph.shared.domain.model.event.EventDetails
 import com.vallem.sylph.shared.domain.model.event.EventVote
 import com.vallem.sylph.shared.domain.repository.EventUserVotesRepository
 import com.vallem.sylph.shared.domain.repository.EventsRepository
@@ -16,6 +16,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -25,7 +26,7 @@ class EventDetailsViewModel @Inject constructor(
     private val votesRepository: EventUserVotesRepository,
     private val auth: FirebaseAuth,
 ) : ViewModel() {
-    private val _eventResult = MutableStateFlow<Result<Event?>>(Result.Loading)
+    private val _eventResult = MutableStateFlow<Result<EventDetails?>>(Result.Loading)
     val eventResult = _eventResult.asStateFlow()
 
     private val _voteResult = MutableStateFlow<Result<EventVote?>>(Result.Loading)
@@ -33,9 +34,6 @@ class EventDetailsViewModel @Inject constructor(
 
     private var eventJob: Job? = null
     private var voteJob: Job? = null
-
-    val currentUser: FirebaseUser?
-        get() = auth.currentUser
 
     fun retrieveEventDetails(id: String) {
         eventJob?.cancel()
@@ -72,12 +70,33 @@ class EventDetailsViewModel @Inject constructor(
                     auth.currentUser!!.uid
                 ).onSuccess {
                     _voteResult.value = Result.Success(null)
+                    updateVoteCount(event.id!!)
                 }
                 else votesRepository.vote(event.id!!, auth.currentUser!!.uid, vote).onSuccess {
                     _voteResult.value = Result.Success(vote)
+                    updateVoteCount(event.id!!)
                 }
             }.onFailure {
                 _voteResult.value = Result.Failure(it)
+            }
+        }
+    }
+
+    private fun updateVoteCount(eventId: String) {
+        voteJob?.cancel()
+        voteJob = viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val updatedVoteCount = votesRepository.retrieveVoteCountsForEvent(eventId)
+                    .getOrNull()
+                    ?: return@withContext
+
+                _eventResult.value.onSuccess {
+                    _eventResult.update {
+                        (it as Result.Success).copy(
+                            data = it.data?.copy(voteCount = updatedVoteCount)
+                        )
+                    }
+                }
             }
         }
     }
