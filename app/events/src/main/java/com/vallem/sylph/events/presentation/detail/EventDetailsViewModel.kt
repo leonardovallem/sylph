@@ -35,6 +35,9 @@ class EventDetailsViewModel @Inject constructor(
     private var eventJob: Job? = null
     private var voteJob: Job? = null
 
+    val currentUserId: String?
+        get() = auth.currentUser?.uid
+
     fun retrieveEventDetails(id: String) {
         eventJob?.cancel()
         eventJob = viewModelScope.launch {

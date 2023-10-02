@@ -112,8 +112,9 @@ private fun EventDetailsBottomSheet(
     when (val res = eventResult) {
         is Result.Success -> res.data?.let { details ->
             EventDetailsBottomSheetBase(event = details.event) {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
-                    // TODO hide if publisher is current user
+                if (details.event.userId == viewModel.currentUserId) Column(
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -174,7 +175,6 @@ private fun EventDetailsBottomSheet(
                         Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
                     }
                 }
-
             }
         }
 
