@@ -99,7 +99,7 @@ class LoginViewModel @Inject constructor(
             }
         }
 
-        is LoginEvent.SignOut -> {
+        is LoginEvent.SignOut -> viewModelScope.launch {
             authRepository.logout()
             loginResult = null
             signUpResult = null

@@ -64,7 +64,6 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.ramcosta.composedestinations.result.NavResult
 import com.ramcosta.composedestinations.result.OpenResultRecipient
-import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphBottomBar
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.loading.SylphLoading
@@ -175,7 +174,6 @@ fun HomeScreen(
 
     NavigationDrawerWrapper(
         drawerState = drawerState,
-        userInfo = viewModel.currentUser?.displayName?.let { UserInfo(it, null) },
         navigator = navigator,
         selectedShortcut = NavigationShortcut.Map,
     ) {
@@ -286,7 +284,7 @@ fun HomeScreen(
                         val mapbox = mapState.mapView?.getMapboxMap() ?: return@MapBox false
                         val coordinates = mapbox.project(clickedPoint, mapbox.cameraState.zoom)
 
-                        val tolerance = 10.0
+                        val tolerance = 1.0
                         val screenBox = ScreenBox(
                             ScreenCoordinate(coordinates.x - tolerance, coordinates.y - tolerance),
                             ScreenCoordinate(coordinates.x + tolerance, coordinates.y + tolerance),

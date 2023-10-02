@@ -106,7 +106,6 @@ private fun EventDetailsBottomSheet(
     val eventResult by viewModel.eventResult.collectAsState()
     val voteResult by viewModel.voteResult.collectAsState()
     val vote = voteResult.getOrNull()
-    val userId = viewModel.currentUser?.uid
 
     LaunchedEffect(eventId) {
         viewModel.retrieveEventDetails(eventId)
@@ -166,7 +165,7 @@ private fun EventDetailsBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { userId?.let { onShowUserInfo(it) } }
+                            .clickable { onShowUserInfo(event.userId) }
                             .background(MaterialTheme.colorScheme.tertiaryContainer)
                             .padding(horizontal = 24.dp, vertical = 16.dp)
                     ) {

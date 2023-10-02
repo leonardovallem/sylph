@@ -1,5 +1,6 @@
 package com.vallem.sylph.shared.data.repository
 
+import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.sylph.shared.data.dynamo.DynamoDbInstantiationException
 import com.vallem.sylph.shared.data.dynamo.dto.User
 import com.vallem.sylph.shared.data.remote.UserRemoteDataSource
@@ -23,8 +24,17 @@ class UserRepositoryImpl(
         Result.Failure(e)
     }
 
-    override suspend fun retrieveDetails(userId: String) = try {
+    override suspend fun retrieveUserInfo(userId: String) = try {
         val userInfo = userDataSource.retrieveDetails(userId)
+
+        if (userInfo == null) Result.Failure(DynamoDbInstantiationException())
+        else Result.Success(UserInfo(userInfo.name, userInfo.picUrl))
+    } catch (e: Exception) {
+        Result.Failure(e)
+    }
+
+    override suspend fun retrieveDetails(userId: String) = try {
+        val userInfo = retrieveUserInfo(userId).getOrNull()
         val userVotes = votesRepository.retrieveVoteCountsForUserEvents(userId).getOrNull()
         val userEvents = eventsRepository.retrieveUserEvents(userId).getOrNull()
 
@@ -32,7 +42,7 @@ class UserRepositoryImpl(
         else Result.Success(
             UserDetails(
                 name = userInfo.name,
-                picUrl = userInfo.picUrl,
+                picUrl = userInfo.picture,
                 eventsMetaData = UserEventsMetaData(
                     totalPublishedEvents = userEvents.size,
                     eventsUpVotes = userVotes?.upVotes ?: 0,

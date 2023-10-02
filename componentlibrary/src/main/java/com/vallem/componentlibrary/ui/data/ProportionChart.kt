@@ -23,7 +23,12 @@ import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.zoneEventColors
 
 object ProportionChart {
-    data class Entry<T : Number>(val proportion: Float, val label: String, val color: Color, val value: T? = null)
+    data class Entry<T : Number>(
+        val proportion: Float,
+        val label: String,
+        val color: Color,
+        val value: T? = null
+    )
 
     @Composable
     operator fun <T : Number> invoke(entries: List<Entry<T>>, modifier: Modifier = Modifier) {
@@ -85,7 +90,11 @@ private fun <T : Number> ChartLine(color: Color, modifier: Modifier = Modifier, 
             .background(color, RoundedCornerShape(8.dp))
             .padding(2.dp)
     ) {
-        Text(text = value.toString(), style = MaterialTheme.typography.labelSmall)
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.surface,
+        )
     }
 }
 

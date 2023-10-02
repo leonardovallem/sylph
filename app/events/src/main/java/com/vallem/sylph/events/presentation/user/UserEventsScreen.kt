@@ -33,12 +33,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.firebase.auth.FirebaseUser
 import com.mapbox.geojson.Point
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.sylph.events.presentation.destinations.CurrentUserEventDetailsBottomSheetDestination
@@ -62,7 +60,6 @@ fun UserEventsScreen(
     UserEventsScreenContent(
         navigator = navigator,
         eventsQueryResult = viewModel.eventsQueryResult,
-        currentUser = viewModel.currentUser,
         retryRequest = viewModel::retrieveEvents,
     )
 }
@@ -71,7 +68,6 @@ fun UserEventsScreen(
 private fun UserEventsScreenContent(
     navigator: DestinationsNavigator,
     eventsQueryResult: Result<List<Event>>,
-    currentUser: FirebaseUser?,
     retryRequest: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -81,7 +77,6 @@ private fun UserEventsScreenContent(
 
     NavigationDrawerWrapper(
         drawerState = drawerState,
-        userInfo = currentUser?.displayName?.let { UserInfo(it, null) },
         navigator = navigator,
         selectedShortcut = NavigationShortcut.RegisteredEvents,
     ) {
@@ -195,7 +190,6 @@ private fun UserEventsScreenSuccessPreview() {
                 )
             )
         ),
-        currentUser = null,
         retryRequest = {}
     )
 }
@@ -206,7 +200,6 @@ private fun UserEventsScreenLoadingPreview() {
     UserEventsScreenContent(
         navigator = EmptyDestinationsNavigator,
         eventsQueryResult = Result.Loading,
-        currentUser = null,
         retryRequest = {}
     )
 }

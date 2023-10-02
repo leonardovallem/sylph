@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,6 +58,7 @@ import com.vallem.sylph.shared.domain.model.Result
 @Destination(route = com.vallem.sylph.shared.Routes.Screen.Login)
 @Composable
 fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hiltViewModel()) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     val (nameIcon, emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
@@ -189,6 +191,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                         isLoading = isButtonLoading,
                         onClick = {
                             viewModel.onEvent(if (viewModel.isRegister) LoginEvent.SignUp else LoginEvent.SignIn)
+                            keyboardController?.hide()
                         },
                         modifier = Modifier
                             .fillMaxWidth(0.5f)
