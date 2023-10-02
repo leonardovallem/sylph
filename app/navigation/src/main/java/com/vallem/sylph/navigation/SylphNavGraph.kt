@@ -5,6 +5,7 @@ import com.ramcosta.composedestinations.spec.NavGraphSpec
 import com.ramcosta.composedestinations.spec.Route
 import com.vallem.init.destinations.LoginScreenDestination
 import com.vallem.init.destinations.OnboardingScreenDestination
+import com.vallem.init.destinations.RegisterScreenDestination
 import com.vallem.sylph.events.presentation.destinations.AddEventScreenDestination
 import com.vallem.sylph.events.presentation.destinations.AnyUserEventDetailsBottomSheetDestination
 import com.vallem.sylph.events.presentation.destinations.CurrentUserEventDetailsBottomSheetDestination
@@ -19,6 +20,7 @@ object SylphNavGraph : NavGraphSpec {
 
     override val destinationsByRoute: Map<String, DestinationSpec<*>> = listOf(
         OnboardingScreenDestination,
+        RegisterScreenDestination,
         LoginScreenDestination,
         HomeScreenDestination,
         AddEventScreenDestination,

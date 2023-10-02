@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
+import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.vallem.sylph.shared.data.datastore.AppSettings
 import com.vallem.sylph.shared.data.datastore.AppSettingsSerializer
+import com.vallem.sylph.shared.data.local.SylphDatabase
 import com.vallem.sylph.shared.data.remote.EventRemoteDataSource
 import com.vallem.sylph.shared.data.remote.EventVotesRemoteDataSource
 import com.vallem.sylph.shared.data.remote.UserRemoteDataSource
@@ -63,8 +65,21 @@ object AppModule {
     fun provideUserRepository(
         dataSource: UserRemoteDataSource,
         votesRepository: EventUserVotesRepository,
-        eventsRepository: EventsRepository
-    ): UserRepository = UserRepositoryImpl(dataSource, votesRepository, eventsRepository)
+        eventsRepository: EventsRepository,
+        database: SylphDatabase,
+    ): UserRepository = UserRepositoryImpl(
+        userDataSource = dataSource,
+        votesRepository = votesRepository,
+        eventsRepository = eventsRepository,
+        userInfoDao = database.userInfoDao,
+    )
+
+    @Provides
+    fun provideDatabase(@ApplicationContext context: Context): SylphDatabase = Room.databaseBuilder(
+        context,
+        SylphDatabase::class.java,
+        SylphDatabase.Name,
+    ).build()
 
     @Singleton
     @Provides

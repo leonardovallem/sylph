@@ -1,6 +1,5 @@
 package com.vallem.init.register
 
-import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -31,7 +30,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,13 +41,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.mr0xf00.easycrop.crop
+import com.mr0xf00.easycrop.rememberImageCropper
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.componentlibrary.ui.button.SylphButtonDefaults
@@ -55,28 +61,41 @@ import com.vallem.componentlibrary.ui.classes.pairWith
 import com.vallem.componentlibrary.ui.input.SylphTextField
 import com.vallem.componentlibrary.ui.input.SylphTextFieldState
 import com.vallem.componentlibrary.ui.input.errorIf
+import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.componentlibrary.util.ValidationRule
-import com.vallem.sylph.shared.util.getBitmap
+import com.vallem.init.destinations.OnboardingScreenDestination
+import com.vallem.sylph.shared.Routes
+import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.presentation.components.ImageCropper
+import com.vallem.sylph.shared.presentation.components.getOrNull
 import com.vallem.sylph.shared.util.pickImage
 import com.vallem.sylph.shared.util.resized
 import kotlinx.coroutines.launch
 
-@Preview
+@Destination(route = Routes.Screen.Register)
 @Composable
-fun RegisterScreen(viewModel: RegisterViewModel = hiltViewModel()) {
+fun RegisterScreen(
+    navigator: DestinationsNavigator,
+    viewModel: RegisterViewModel = hiltViewModel(),
+) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
-    var pic by remember { mutableStateOf<Bitmap?>(null) }
+    val scope = rememberCoroutineScope()
+    val imageCropper = rememberImageCropper()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var pic by remember { mutableStateOf<ImageBitmap?>(null) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
 
         scope.launch {
-            context.getBitmap(uri)
-                ?.resized(300, 300)
-                ?.let { pic = it }
+            val result = imageCropper.crop(uri, context)
+            result.getOrNull()?.let {
+                viewModel.updatePicture(it.resized(300, 300))
+                pic = it
+            }
         }
     }
 
@@ -84,12 +103,35 @@ fun RegisterScreen(viewModel: RegisterViewModel = hiltViewModel()) {
         onSurfaceVariant pairWith primary
     }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
 
+    ColorSystemBars()
+
+    LaunchedEffect(viewModel.signUpResult) {
+        when (val result = viewModel.signUpResult) {
+            is Result.Success -> navigator.navigate(OnboardingScreenDestination)
+
+            is Result.Failure -> snackbarHostState.showSnackbar(
+                message = when (result.e) {
+                    is FirebaseAuthUserCollisionException -> {
+                        navigator.popBackStack()
+                        "User already registered. Please login with your account"
+                    }
+
+                    else -> result.e.message.toString()
+                },
+            )
+
+            else -> Unit
+        }
+    }
+
+    ImageCropper(imageCropper)
+
     Scaffold(
         topBar = {
             SylphTopBar(
                 title = "Criar conta",
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = navigator::popBackStack) {
                         Icon(
                             imageVector = Icons.Rounded.ArrowBack,
                             contentDescription = "Voltar",
@@ -101,7 +143,8 @@ fun RegisterScreen(viewModel: RegisterViewModel = hiltViewModel()) {
         bottomBar = {
             SylphButton.Elevated(
                 label = "Criar conta",
-                onClick = { /*TODO*/ },
+                enabled = viewModel.validInput,
+                onClick = viewModel::signUp,
                 colors = SylphButtonDefaults.elevatedColors(
                     container = TransFlagColors.Blue,
                     content = TransFlagColors.OnBlue
@@ -110,7 +153,7 @@ fun RegisterScreen(viewModel: RegisterViewModel = hiltViewModel()) {
                     .padding(24.dp)
                     .fillMaxWidth()
             )
-        }
+        },
     ) { pv ->
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -143,8 +186,10 @@ fun RegisterScreen(viewModel: RegisterViewModel = hiltViewModel()) {
                     )
 
                     else -> Image(
-                        bitmap = bitmap.asImageBitmap(),
+                        bitmap = bitmap,
                         contentDescription = "Alterar foto de perfil",
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -189,6 +234,11 @@ fun RegisterScreen(viewModel: RegisterViewModel = hiltViewModel()) {
                     .fillMaxWidth()
                     .imePadding()
             )
+
+            /*
+            "Já tem uma conta?"
+            "Entrar"
+            */
         }
     }
 }

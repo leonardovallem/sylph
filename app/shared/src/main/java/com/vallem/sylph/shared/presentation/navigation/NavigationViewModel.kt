@@ -2,7 +2,6 @@ package com.vallem.sylph.shared.presentation.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.repository.AuthRepository
@@ -19,7 +18,6 @@ import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class NavigationViewModel @Inject constructor(
-    auth: FirebaseAuth,
     private val userRepository: UserRepository,
     private val authRepository: AuthRepository,
 ) : ViewModel() {
@@ -30,7 +28,7 @@ class NavigationViewModel @Inject constructor(
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
     init {
-        auth.currentUser?.let {
+        authRepository.currentUser?.let {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     _userInfo.value = userRepository.retrieveUserInfo(it.uid)
@@ -41,6 +39,7 @@ class NavigationViewModel @Inject constructor(
 
     fun logOut() = viewModelScope.launch {
         authRepository.logout()
+        userRepository.clearUserInfo()
         _navigationEvent.send(NavigationEvent.LogOut)
     }
 }

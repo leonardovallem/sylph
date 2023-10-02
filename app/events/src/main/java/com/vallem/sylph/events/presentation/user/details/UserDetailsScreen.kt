@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.data.ProportionChart
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
@@ -136,8 +137,10 @@ private fun UserDetailsScreenBase(userDetails: UserDetails) {
             .padding(24.dp)
     ) {
         UserInfo(
-            name = userDetails.name,
-            picUrl = userDetails.picUrl,
+            userInfo = UserInfo(
+                name = userDetails.name,
+                picture = userDetails.picUrl,
+            ),
         )
 
         Text(

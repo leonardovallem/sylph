@@ -1,28 +1,40 @@
 package com.vallem.init.register
 
+import android.graphics.Bitmap
 import android.util.Patterns
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
+import com.vallem.componentlibrary.extensions.encodeAsBase64
 import com.vallem.componentlibrary.util.ValidationRule
+import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.domain.repository.AuthRepository
+import com.vallem.sylph.shared.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor() : ViewModel() {
-    private val _picUrl = MutableStateFlow<String?>(null)
-    val picUrl = _picUrl.asStateFlow()
+class RegisterViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
+) : ViewModel() {
+    var signUpResult by mutableStateOf<Result<FirebaseUser>?>(null)
+        private set
 
     var name by mutableStateOf("")
         private set
     var email by mutableStateOf("")
         private set
     var password by mutableStateOf("")
+        private set
+    var picture by mutableStateOf<Bitmap?>(null)
         private set
 
     private var hasNameFirstInput by mutableStateOf(false)
@@ -42,8 +54,6 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
         else validEmail && validPassword && validName
     }
 
-    fun setPicUrl(url: String) = _picUrl.update { url }
-
     fun updateName(value: String) {
         hasNameFirstInput = true
         name = value
@@ -57,5 +67,26 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
     fun updatePassword(value: String) {
         hasPasswordFirstInput = true
         password = value
+    }
+
+    fun updatePicture(bitmap: Bitmap) {
+        picture = bitmap
+    }
+
+    fun signUp() = viewModelScope.launch {
+        signUpResult = Result.Loading
+        withContext(Dispatchers.IO) {
+            signUpResult = authRepository.signup(name, email, password)
+
+            when (val res = signUpResult) {
+                is Result.Success -> userRepository.save(
+                    id = res.data.uid,
+                    name = res.data.displayName.orEmpty(),
+                    picture = picture?.encodeAsBase64()
+                )
+
+                else -> Unit
+            }
+        }
     }
 }

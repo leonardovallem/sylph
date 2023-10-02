@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.SentimentDissatisfied
 import androidx.compose.material.icons.rounded.SentimentSatisfied
 import androidx.compose.material.icons.rounded.ThumbDown
 import androidx.compose.material.icons.rounded.ThumbUp
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -133,30 +134,37 @@ private fun EventDetailsBottomSheet(
                                 .padding(start = 8.dp),
                         )
 
-                        if (voteResult is Result.Loading) SylphLoading.Circular()
-                        else {
-                            IconButton(onClick = { viewModel.vote(event, EventVote.DownVote) }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.ThumbDown,
-                                    contentDescription = "Reprovar",
-                                    tint = when (vote) {
-                                        EventVote.DownVote -> MaterialTheme.zoneEventColors.dangerSelected
-                                        EventVote.UpVote -> MaterialTheme.colorScheme.onSurfaceVariant
-                                        null -> MaterialTheme.zoneEventColors.danger
-                                    }
-                                )
-                            }
+                        when (voteResult) {
+                            is Result.Loading -> SylphLoading.Circular()
+                            is Result.Failure -> Icon(
+                                imageVector = Icons.Rounded.WarningAmber,
+                                contentDescription = "Erro no sistema de votação",
+                            )
 
-                            IconButton(onClick = { viewModel.vote(event, EventVote.UpVote) }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.ThumbUp,
-                                    contentDescription = "Aprovar",
-                                    tint = when (vote) {
-                                        EventVote.UpVote -> MaterialTheme.zoneEventColors.safetySelected
-                                        EventVote.DownVote -> MaterialTheme.colorScheme.onSurfaceVariant
-                                        null -> MaterialTheme.zoneEventColors.safety
-                                    }
-                                )
+                            else -> {
+                                IconButton(onClick = { viewModel.vote(event, EventVote.DownVote) }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ThumbDown,
+                                        contentDescription = "Reprovar",
+                                        tint = when (vote) {
+                                            EventVote.DownVote -> MaterialTheme.zoneEventColors.dangerSelected
+                                            EventVote.UpVote -> MaterialTheme.colorScheme.onSurfaceVariant
+                                            null -> MaterialTheme.zoneEventColors.danger
+                                        }
+                                    )
+                                }
+
+                                IconButton(onClick = { viewModel.vote(event, EventVote.UpVote) }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ThumbUp,
+                                        contentDescription = "Aprovar",
+                                        tint = when (vote) {
+                                            EventVote.UpVote -> MaterialTheme.zoneEventColors.safetySelected
+                                            EventVote.DownVote -> MaterialTheme.colorScheme.onSurfaceVariant
+                                            null -> MaterialTheme.zoneEventColors.safety
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

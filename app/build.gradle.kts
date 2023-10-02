@@ -70,6 +70,9 @@ dependencies {
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
+    implementation(SylphDependencies.Libs.Android.Room)
+    ksp(SylphDependencies.Libs.Android.RoomKsp)
+
     implementation(SylphDependencies.Libs.Android.Core)
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)
     implementation(SylphDependencies.Libs.Android.Compose.Activity)

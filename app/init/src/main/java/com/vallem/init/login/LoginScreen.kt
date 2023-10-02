@@ -25,8 +25,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
@@ -50,8 +47,7 @@ import com.vallem.componentlibrary.ui.input.SylphTextField
 import com.vallem.componentlibrary.ui.input.SylphTextFieldState
 import com.vallem.componentlibrary.ui.input.errorIf
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
-import com.vallem.componentlibrary.util.ValidationRule
-import com.vallem.init.destinations.OnboardingScreenDestination
+import com.vallem.init.destinations.RegisterScreenDestination
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
 import com.vallem.sylph.shared.domain.model.Result
 
@@ -61,15 +57,9 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
     val keyboardController = LocalSoftwareKeyboardController.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val (nameIcon, emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
+    val (emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
         onSurfaceVariant pairWith primary
     }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
-
-    val isButtonLoading by remember {
-        derivedStateOf {
-            viewModel.loginResult == Result.Loading || viewModel.signUpResult == Result.Loading
-        }
-    }
 
     ColorSystemBars()
 
@@ -81,25 +71,6 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                 message = when (result.e) {
                     is FirebaseAuthInvalidCredentialsException -> "Invalid password"
                     is FirebaseAuthInvalidUserException -> "No user found for provided email"
-
-                    else -> result.e.message.toString()
-                },
-            )
-
-            else -> Unit
-        }
-    }
-
-    LaunchedEffect(viewModel.signUpResult) {
-        when (val result = viewModel.signUpResult) {
-            is Result.Success -> navigator.navigate(OnboardingScreenDestination)
-
-            is Result.Failure -> snackbarHostState.showSnackbar(
-                message = when (result.e) {
-                    is FirebaseAuthUserCollisionException -> {
-                        viewModel.onEvent(LoginEvent.SwitchMode)
-                        "User already registered. Please login with your account"
-                    }
 
                     else -> result.e.message.toString()
                 },
@@ -126,24 +97,6 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
             SylphLogo()
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                AnimatedContent(
-                    targetState = viewModel.isRegister,
-                    label = "NameField"
-                ) { isRegister ->
-                    if (isRegister) SylphTextField.SingleLine(
-                        value = viewModel.name,
-                        onValueChange = { viewModel.onEvent(LoginEvent.Update.Name(it)) },
-                        placeholder = "Name",
-                        leadingIcon = nameIcon,
-                        state = SylphTextFieldState.errorIf(!viewModel.validName),
-                        helperText = "Nome não pode ficar em branco".takeIf { !viewModel.validName },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .imePadding()
-                    )
-                }
-
                 SylphTextField.SingleLine(
                     value = viewModel.email,
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Email(it)) },
@@ -162,9 +115,6 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     onValueChange = { viewModel.onEvent(LoginEvent.Update.Password(it)) },
                     placeholder = "Password",
                     leadingIcon = passwordIcon,
-                    state = SylphTextFieldState.errorIf(viewModel.isRegister && !viewModel.validPassword),
-                    helperText = ValidationRule.Password.helperTextFor(viewModel.password)
-                        .takeIf { viewModel.isRegister && !viewModel.validPassword },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(onGo = { viewModel.onEvent(LoginEvent.SignIn) }),
                     modifier = Modifier
@@ -186,11 +136,11 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                     CircularProgressIndicator()
                 } else Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     SylphButton.Pill(
-                        label = if (viewModel.isRegister) "Criar conta" else "Login",
+                        label = "Login",
                         enabled = viewModel.validInput,
-                        isLoading = isButtonLoading,
+                        isLoading = viewModel.loginResult == Result.Loading,
                         onClick = {
-                            viewModel.onEvent(if (viewModel.isRegister) LoginEvent.SignUp else LoginEvent.SignIn)
+                            viewModel.onEvent(LoginEvent.SignIn)
                             keyboardController?.hide()
                         },
                         modifier = Modifier
@@ -199,20 +149,16 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                             .padding(16.dp)
                     )
 
-                    AnimatedContent(targetState = viewModel.isRegister, label = "LoginModeSwitch") {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = if (it) "Já tem uma conta?" else "Ainda não tem uma conta?"
-                            )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Ainda não tem uma conta?")
 
-                            SylphTextButton(
-                                label = if (it) "Entrar" else "Criar conta",
-                                onClick = { viewModel.onEvent(LoginEvent.SwitchMode) }
-                            )
-                        }
+                        SylphTextButton(
+                            label = "Criar conta",
+                            onClick = { navigator.navigate(RegisterScreenDestination) }
+                        )
                     }
                 }
             }

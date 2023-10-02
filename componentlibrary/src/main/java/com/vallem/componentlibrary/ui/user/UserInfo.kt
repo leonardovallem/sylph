@@ -1,5 +1,6 @@
 package com.vallem.componentlibrary.ui.user
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,19 +15,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vallem.componentlibrary.domain.model.UserInfo
+import com.vallem.componentlibrary.extensions.decodeAsBitmap
 
 @Composable
-fun UserInfo(name: String, picUrl: String?, modifier: Modifier = Modifier) {
+fun UserInfo(userInfo: UserInfo, modifier: Modifier = Modifier) {
+    val pictureBitmap = remember(userInfo) {
+        userInfo.picture?.decodeAsBitmap()?.asImageBitmap()
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        if (picUrl == null) Icon(
+        if (pictureBitmap == null) Icon(
             imageVector = Icons.Filled.Person,
             contentDescription = "Sem foto de perfil",
             modifier = Modifier
@@ -34,7 +43,9 @@ fun UserInfo(name: String, picUrl: String?, modifier: Modifier = Modifier) {
                 .size(64.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(12.dp)
-        ) else Box(   // TODO coil image
+        ) else Image(
+            bitmap = pictureBitmap,
+            contentDescription = "Foto de perfil",
             modifier = Modifier
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -42,7 +53,7 @@ fun UserInfo(name: String, picUrl: String?, modifier: Modifier = Modifier) {
         )
 
         Text(
-            text = name,
+            text = userInfo.name,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(vertical = 16.dp)
@@ -77,5 +88,10 @@ fun UserInfoSkeleton(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun UserInfoPreview() {
-    UserInfo(name = "User Name", picUrl = null)
+    UserInfo(
+        userInfo = UserInfo(
+            name = "User Name",
+            picture = null
+        )
+    )
 }

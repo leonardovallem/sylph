@@ -17,4 +17,7 @@ sealed class Result<out T> {
 
     val isSuccess: Boolean
         get() = this is Success
+
+    val isLoading: Boolean
+        get() = this is Loading
 }

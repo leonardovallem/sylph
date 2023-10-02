@@ -47,7 +47,7 @@ import com.vallem.sylph.shared.domain.model.event.Event
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.presentation.components.FlagLoading
-import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
+import com.vallem.sylph.shared.presentation.navigation.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
 import kotlinx.coroutines.launch
 

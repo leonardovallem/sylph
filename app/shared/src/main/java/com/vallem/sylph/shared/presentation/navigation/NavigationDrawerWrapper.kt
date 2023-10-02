@@ -1,4 +1,4 @@
-package com.vallem.sylph.shared.presentation.components
+package com.vallem.sylph.shared.presentation.navigation
 
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -12,10 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vallem.componentlibrary.ui.drawer.SylphNavigationDrawer
+import com.vallem.componentlibrary.ui.user.UserInfoSkeleton
 import com.vallem.sylph.shared.Routes
+import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.presentation.components.AlertLevel
+import com.vallem.sylph.shared.presentation.components.AlertMessage
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
-import com.vallem.sylph.shared.presentation.navigation.NavigationEvent
-import com.vallem.sylph.shared.presentation.navigation.NavigationViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,19 +53,30 @@ fun <T : NavigationShortcut> NavigationDrawerWrapper(
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen,
         drawerContent = {
-            SylphNavigationDrawer(
-                userInfo = userInfo.getOrNull(),
-                selectedShortcut = selectedShortcut,
-                shortCuts = userInfo.getOrNull()
-                    ?.let { NavigationShortcut.values }
-                    ?.toSet()
-                    .orEmpty(),
-                onShortcutClick = {
-                    if (it.destination == selectedShortcut?.destination) scope.launch { drawerState.close() }
-                    else navigator.navigate(it.destination.route)
-                },
-                onLogOut = viewModel::logOut
-            )
+            when (val res = userInfo) {
+                is Result.Success -> SylphNavigationDrawer(
+                    userInfo = res.data!!,
+                    selectedShortcut = selectedShortcut,
+                    shortCuts = NavigationShortcut.values,
+                    onShortcutClick = {
+                        if (it.destination == selectedShortcut?.destination) scope.launch { drawerState.close() }
+                        else navigator.navigate(it.destination.route)
+                    },
+                    onLogOut = viewModel::logOut
+                )
+
+                else -> SylphNavigationDrawer.Base(
+                    topContent = { UserInfoSkeleton() },
+                    middleContent = {
+                        if (res is Result.Failure) AlertMessage(
+                            title = "Algo deu errado...",
+                            description = "Ocorreu um erro ao recuperar os seus dados",
+                            level = AlertLevel.Error,
+                        )
+                    },
+                    bottomContent = {},
+                )
+            }
         },
         modifier = modifier,
         content = content

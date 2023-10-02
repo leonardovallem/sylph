@@ -50,7 +50,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import com.mapbox.bindgen.Value
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MercatorCoordinate
 import com.mapbox.maps.ScreenBox
 import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.SourceQueryOptions
@@ -85,16 +84,16 @@ import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.extensions.point
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
+import com.vallem.sylph.shared.map.util.contains
 import com.vallem.sylph.shared.map.util.defaultStyle
+import com.vallem.sylph.shared.map.util.distanceTo
 import com.vallem.sylph.shared.map.util.rememberLocationProvider
 import com.vallem.sylph.shared.map.util.rememberMapState
-import com.vallem.sylph.shared.presentation.components.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
+import com.vallem.sylph.shared.presentation.navigation.NavigationDrawerWrapper
 import com.vallem.sylph.shared.util.EmptyOpenResultRecipient
 import com.vallem.sylph.shared.util.OnLifecycleEvent
 import com.vallem.sylph.shared.util.truthyCallback
-import kotlin.math.pow
-import kotlin.math.sqrt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -339,14 +338,6 @@ fun HomeScreen(
         }
     }
 }
-
-fun MercatorCoordinate.distanceTo(coordinate: MercatorCoordinate) =
-    sqrt((x - coordinate.x).pow(2) + (y - coordinate.y).pow(2))
-
-operator fun ScreenBox.contains(coordinate: MercatorCoordinate) = (coordinate.x >= min.x)
-    .and(coordinate.x <= max.x)
-    .and(coordinate.y >= min.y)
-    .and(coordinate.y <= max.y)
 
 @Preview
 @Composable

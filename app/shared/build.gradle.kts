@@ -88,12 +88,15 @@ dependencies {
 
     implementation(SylphDependencies.Libs.Android.DataStore)
     implementation(SylphDependencies.Libs.ThirdParty.Jackson)
+    implementation(SylphDependencies.Libs.Android.Room)
+    ksp(SylphDependencies.Libs.Android.RoomKsp)
 
     implementation(SylphDependencies.Libs.Android.Hilt)
     kapt(SylphDependencies.Libs.Android.HiltKapt)
     implementation(SylphDependencies.Libs.Android.Compose.HiltNavigation)
 
-    implementation(project(":componentlibrary"))
+    implementation(SylphDependencies.Libs.ThirdParty.EasyCrop)
 
+    implementation(project(":componentlibrary"))
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
 }
