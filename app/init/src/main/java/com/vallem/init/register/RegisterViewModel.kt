@@ -34,6 +34,8 @@ class RegisterViewModel @Inject constructor(
         private set
     var password by mutableStateOf("")
         private set
+    var passwordConfirmation by mutableStateOf("")
+        private set
     var picture by mutableStateOf<Bitmap?>(null)
         private set
 
@@ -49,9 +51,13 @@ class RegisterViewModel @Inject constructor(
         !hasPasswordFirstInput || ValidationRule.Password.isValid(password)
     }
 
+    val validPasswordConfirmation by derivedStateOf {
+        !validPassword || password == passwordConfirmation
+    }
+
     val validInput by derivedStateOf {
         if (!hasNameFirstInput || !hasEmailFirstInput || !hasPasswordFirstInput) false
-        else validEmail && validPassword && validName
+        else validEmail && validPassword && validName && password == passwordConfirmation
     }
 
     fun updateName(value: String) {
@@ -67,6 +73,10 @@ class RegisterViewModel @Inject constructor(
     fun updatePassword(value: String) {
         hasPasswordFirstInput = true
         password = value
+    }
+
+    fun updatePasswordConfirmation(value: String) {
+        passwordConfirmation = value
     }
 
     fun updatePicture(bitmap: Bitmap) {

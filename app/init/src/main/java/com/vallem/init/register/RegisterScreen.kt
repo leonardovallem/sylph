@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -81,6 +82,7 @@ fun RegisterScreen(
 ) {
     val context = LocalContext.current
 
+    val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
     val imageCropper = rememberImageCropper()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -144,7 +146,10 @@ fun RegisterScreen(
             SylphButton.Elevated(
                 label = "Criar conta",
                 enabled = viewModel.validInput,
-                onClick = viewModel::signUp,
+                onClick = {
+                    keyboardController?.hide()
+                    viewModel.signUp()
+                },
                 colors = SylphButtonDefaults.elevatedColors(
                     container = TransFlagColors.Blue,
                     content = TransFlagColors.OnBlue
@@ -197,7 +202,7 @@ fun RegisterScreen(
             SylphTextField.SingleLine(
                 value = viewModel.name,
                 onValueChange = viewModel::updateName,
-                placeholder = "Name",
+                placeholder = "Nome",
                 leadingIcon = nameIcon,
                 state = SylphTextFieldState.errorIf(!viewModel.validName),
                 helperText = "Nome não pode ficar em branco".takeIf { !viewModel.validName },
@@ -223,13 +228,30 @@ fun RegisterScreen(
             SylphTextField.Password(
                 value = viewModel.password,
                 onValueChange = viewModel::updatePassword,
-                placeholder = "Password",
+                placeholder = "Senha",
                 leadingIcon = passwordIcon,
                 state = SylphTextFieldState.errorIf(!viewModel.validPassword),
                 helperText = ValidationRule.Password.helperTextFor(viewModel.password)
                     .takeIf { !viewModel.validPassword },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .imePadding()
+            )
+
+            SylphTextField.Password(
+                value = viewModel.passwordConfirmation,
+                onValueChange = viewModel::updatePasswordConfirmation,
+                placeholder = "Confirmação da senha",
+                leadingIcon = passwordIcon,
+                state = SylphTextFieldState.errorIf(!viewModel.validPasswordConfirmation),
+                helperText = "A confirmação precisa ser igual à senha"
+                    .takeIf { !viewModel.validPasswordConfirmation },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                keyboardActions = KeyboardActions(onGo = { /* TODO */ }),
+                keyboardActions = KeyboardActions(onGo = {
+                    keyboardController?.hide()
+                    viewModel.signUp()
+                }),
                 modifier = Modifier
                     .fillMaxWidth()
                     .imePadding()
