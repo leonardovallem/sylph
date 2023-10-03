@@ -8,3 +8,11 @@ sealed interface LoginEvent {
 
     object SignIn : LoginEvent
 }
+
+data class LoginFormState(
+    val email: String,
+    val validEmail: Boolean,
+    val password: String,
+    val validPassword: Boolean,
+    val validInput: Boolean,
+)

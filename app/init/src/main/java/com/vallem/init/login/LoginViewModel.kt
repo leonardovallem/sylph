@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
-import com.vallem.componentlibrary.util.ValidationRule
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.repository.AuthRepository
 import com.vallem.sylph.shared.domain.repository.UserRepository
@@ -35,9 +34,7 @@ class LoginViewModel @Inject constructor(
         !hasEmailFirstInput || Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
     val validPassword by derivedStateOf {
-        !hasPasswordFirstInput
-                || password.isNotEmpty()
-                || ValidationRule.Password.isValid(password)
+        !hasPasswordFirstInput || password.isNotEmpty()
     }
 
     val validInput by derivedStateOf {

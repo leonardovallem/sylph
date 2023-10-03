@@ -35,9 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseUser
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.ui.brand.SylphLogo
 import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.componentlibrary.ui.button.SylphTextButton
@@ -54,12 +54,12 @@ import com.vallem.sylph.shared.domain.model.Result
 @Destination(route = com.vallem.sylph.shared.Routes.Screen.Login)
 @Composable
 fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hiltViewModel()) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val (emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
-        onSurfaceVariant pairWith primary
-    }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
+    val formState = with(viewModel) {
+        remember(email, validEmail, password, validPassword, validInput) {
+            LoginFormState(email, validEmail, password, validPassword, validInput)
+        }
+    }
 
     ColorSystemBars()
 
@@ -80,6 +80,29 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
         }
     }
 
+    LoginScreenContent(
+        loginResult = viewModel.loginResult,
+        state = formState,
+        onEvent = viewModel::onEvent,
+        snackbarHostState = snackbarHostState,
+        goToRegisterScreen = { navigator.navigate(RegisterScreenDestination) },
+    )
+}
+
+@Composable
+private fun LoginScreenContent(
+    loginResult: Result<FirebaseUser>?,
+    state: LoginFormState,
+    onEvent: (LoginEvent) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    goToRegisterScreen: () -> Unit,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val (emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
+        onSurfaceVariant pairWith primary
+    }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier
@@ -98,12 +121,12 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 SylphTextField.SingleLine(
-                    value = viewModel.email,
-                    onValueChange = { viewModel.onEvent(LoginEvent.Update.Email(it)) },
+                    value = state.email,
+                    onValueChange = { onEvent(LoginEvent.Update.Email(it)) },
                     placeholder = "Email",
                     leadingIcon = emailIcon,
-                    state = SylphTextFieldState.errorIf(!viewModel.validEmail),
-                    helperText = "Email inválido".takeIf { !viewModel.validEmail },
+                    state = SylphTextFieldState.errorIf(!state.validEmail),
+                    helperText = "Email inválido".takeIf { !state.validEmail },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -111,12 +134,12 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                 )
 
                 SylphTextField.Password(
-                    value = viewModel.password,
-                    onValueChange = { viewModel.onEvent(LoginEvent.Update.Password(it)) },
+                    value = state.password,
+                    onValueChange = { onEvent(LoginEvent.Update.Password(it)) },
                     placeholder = "Password",
                     leadingIcon = passwordIcon,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                    keyboardActions = KeyboardActions(onGo = { viewModel.onEvent(LoginEvent.SignIn) }),
+                    keyboardActions = KeyboardActions(onGo = { onEvent(LoginEvent.SignIn) }),
                     modifier = Modifier
                         .fillMaxWidth()
                         .imePadding()
@@ -124,7 +147,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
             }
 
             AnimatedContent(
-                targetState = viewModel.loginResult is Result.Loading || viewModel.loginResult is Result.Loading,
+                targetState = loginResult == Result.Loading,
                 label = "LoginAction"
             ) { isLoading ->
                 if (isLoading) Box(
@@ -137,10 +160,10 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
                 } else Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     SylphButton.Pill(
                         label = "Login",
-                        enabled = viewModel.validInput,
-                        isLoading = viewModel.loginResult == Result.Loading,
+                        enabled = state.validInput,
+                        isLoading = loginResult == Result.Loading,
                         onClick = {
-                            viewModel.onEvent(LoginEvent.SignIn)
+                            onEvent(LoginEvent.SignIn)
                             keyboardController?.hide()
                         },
                         modifier = Modifier
@@ -157,7 +180,7 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
 
                         SylphTextButton(
                             label = "Criar conta",
-                            onClick = { navigator.navigate(RegisterScreenDestination) }
+                            onClick = goToRegisterScreen,
                         )
                     }
                 }
@@ -169,7 +192,11 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
 @Preview
 @Composable
 private fun LoginScreenPreview() {
-    LoginScreen(
-        navigator = EmptyDestinationsNavigator
+    LoginScreenContent(
+        loginResult = null,
+        state = LoginFormState("", false, "", false, false),
+        onEvent = {},
+        snackbarHostState = remember { SnackbarHostState() },
+        goToRegisterScreen = {},
     )
 }
