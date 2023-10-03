@@ -64,6 +64,8 @@ dependencies {
     implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
     implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
 
+    implementation(SylphDependencies.Libs.ThirdParty.EasyCrop)
+
     implementation(SylphDependencies.Libs.Android.Hilt)
     implementation(SylphDependencies.Libs.Android.Compose.HiltNavigation)
     kapt(SylphDependencies.Libs.Android.HiltKapt)

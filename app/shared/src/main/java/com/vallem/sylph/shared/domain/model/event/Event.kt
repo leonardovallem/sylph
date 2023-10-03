@@ -10,6 +10,7 @@ interface Event : Parcelable {
     val reasons: Set<Reason>
     val note: String
     val userId: String
+    val id: String?
 
     fun update(
         reasons: Set<Reason> = this.reasons,
@@ -34,7 +35,8 @@ data class SafetyEvent(
     override val point: PointWrapper,
     override val reasons: Set<SafetyReason>,
     override val note: String,
-    override val userId: String
+    override val userId: String,
+    override val id: String?,
 ) : Event {
     override fun update(reasons: Set<Reason>, note: String, userId: String, victim: DangerVictim?) =
         copy(
@@ -44,7 +46,7 @@ data class SafetyEvent(
         )
 
     companion object {
-        fun defaultFor(point: Point) = SafetyEvent(PointWrapper(point), emptySet(), "", "")
+        fun defaultFor(point: Point) = SafetyEvent(PointWrapper(point), emptySet(), "", "", null)
     }
 }
 
@@ -54,7 +56,8 @@ data class DangerEvent(
     override val reasons: Set<DangerReason>,
     val victim: DangerVictim?,
     override val note: String,
-    override val userId: String
+    override val userId: String,
+    override val id: String?,
 ) : Event {
     override fun update(
         reasons: Set<Reason>,
@@ -69,6 +72,13 @@ data class DangerEvent(
     )
 
     companion object {
-        fun defaultFor(point: Point) = DangerEvent(PointWrapper(point), emptySet(), null, "", "")
+        fun defaultFor(point: Point) = DangerEvent(
+            point = PointWrapper(point),
+            reasons = emptySet(),
+            victim = null,
+            note = "",
+            userId = "",
+            id = null
+        )
     }
 }

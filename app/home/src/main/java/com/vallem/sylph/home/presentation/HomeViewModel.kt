@@ -1,28 +1,49 @@
 package com.vallem.sylph.home.presentation
 
-import android.location.Location
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.maps.CameraState
 import com.vallem.sylph.shared.data.datastore.AppSettings
-import com.vallem.sylph.shared.extensions.mapCenter
+import com.vallem.sylph.shared.data.datastore.serializable
+import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.domain.repository.EventsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
-    val dataStore: DataStore<AppSettings>,
+    private val eventsRepository: EventsRepository,
+    private val dataStore: DataStore<AppSettings>,
 ) : ViewModel() {
-    val currentUser: FirebaseUser?
-        get() = auth.currentUser
+    private val _eventsFeatures = MutableStateFlow<Result<FeatureCollection>>(Result.Loading)
+    val eventsFeatures = _eventsFeatures.asStateFlow()
 
-    fun saveCurrentLocation(location: Location) = viewModelScope.launch {
-        dataStore.updateData {
-            it.copy(mapCenter = location.mapCenter)
+    val mapCameraState = dataStore.data.map { it.cameraState }
+
+    init {
+        updateEvents()
+    }
+
+    fun updateEvents() = viewModelScope.launch {
+        _eventsFeatures.value = Result.Loading
+        withContext(Dispatchers.IO) {
+            _eventsFeatures.value = eventsRepository.retrieveEventsFeatures()
+        }
+    }
+
+    fun saveMapCameraState(cameraState: CameraState) = viewModelScope.launch {
+        withContext(Dispatchers.Default) {
+            dataStore.updateData {
+                it.copy(cameraState = cameraState.serializable())
+            }
         }
     }
 }

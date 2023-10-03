@@ -6,13 +6,16 @@ object Routes {
     object Screen {
         const val Onboarding = "onboarding_screen"
         const val Login = "login_screen"
+        const val Register = "register_screen"
         const val Home = "home_screen"
         const val AddEvent = "add_event_screen"
         const val UserEvents = "user_events_screen"
+        const val UserDetails = "user_details_screen"
     }
 
     object BottomSheet {
-        const val EventDetails = "event_detail_bottom_sheet"
+        const val CurrentUserEventDetails = "current_user_event_detail_bottom_sheet"
+        const val AnyUserEventDetails = "any_user_event_detail_bottom_sheet"
     }
 }
 

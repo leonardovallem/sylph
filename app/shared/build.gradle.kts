@@ -6,6 +6,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp") version "1.8.10-1.0.9"
+    id("kotlin-kapt")
     id("kotlin-parcelize")
 }
 
@@ -87,8 +88,15 @@ dependencies {
 
     implementation(SylphDependencies.Libs.Android.DataStore)
     implementation(SylphDependencies.Libs.ThirdParty.Jackson)
+    implementation(SylphDependencies.Libs.Android.Room)
+    ksp(SylphDependencies.Libs.Android.RoomKsp)
+
+    implementation(SylphDependencies.Libs.Android.Hilt)
+    kapt(SylphDependencies.Libs.Android.HiltKapt)
+    implementation(SylphDependencies.Libs.Android.Compose.HiltNavigation)
+
+    implementation(SylphDependencies.Libs.ThirdParty.EasyCrop)
 
     implementation(project(":componentlibrary"))
-
     androidTestImplementation(platform(SylphDependencies.Libs.Android.Compose.Bom))
 }

@@ -20,6 +20,7 @@ object SylphDependencies {
             const val Espresso = "3.5.1"
             const val GmsLocation = "21.0.1"
             const val Hilt = "2.44"
+            const val Room = "2.4.1"
         }
 
         object ThirdParty {
@@ -35,6 +36,7 @@ object SylphDependencies {
             const val FirebaseBom = "31.3.0"
             const val JUnit = "4.13.2"
             const val TSID = "2.1.1"
+            const val EasyCrop = "0.1.1"
         }
 
         object Kotlin {
@@ -72,7 +74,9 @@ object SylphDependencies {
             const val Hilt = "com.google.dagger:hilt-android:${Versions.Android.Hilt}"
             const val HiltKapt = "com.google.dagger:hilt-compiler:${Versions.Android.Hilt}"
             const val JUnit = "androidx.test.ext:junit:${Versions.Android.JUnit}"
-            const val Espresso = "androidx.test.espresso:espresso-core:${Versions.Android.Espresso}"
+            const val Espresso = "androidx.room:room-runtime:${Versions.Android.Espresso}"
+            const val Room = "androidx.room:room-runtime:${Versions.Android.Room}"
+            const val RoomKsp = "androidx.room:room-compiler:${Versions.Android.Room}"
         }
 
         object ThirdParty {
@@ -98,6 +102,7 @@ object SylphDependencies {
             const val MapBox = "com.mapbox.maps:android:${Versions.ThirdParty.MapBox}"
             const val JUnit = "junit:junit:${Versions.ThirdParty.JUnit}"
             const val TSID = "io.hypersistence:hypersistence-tsid:${Versions.ThirdParty.TSID}"
+            const val EasyCrop = "io.github.mr0xf00:easycrop:${Versions.ThirdParty.EasyCrop}"
         }
 
         object Kotlin {

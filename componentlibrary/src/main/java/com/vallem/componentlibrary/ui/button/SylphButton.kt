@@ -56,13 +56,17 @@ object SylphButton {
         label: String,
         onClick: () -> Unit,
         modifier: Modifier = Modifier,
+        colors: SylphButtonColors = SylphButtonDefaults.elevatedColors(),
         enabled: Boolean = true,
         isLoading: Boolean = false,
     ) {
         ElevatedButton(
             onClick = onClick,
             enabled = enabled,
-            colors = ButtonDefaults.filledTonalButtonColors(),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = colors.container,
+                contentColor = colors.content,
+            ),
             shape = RoundedCornerShape(12.dp),
             modifier = modifier.heightIn(min = 48.dp),
         ) {

@@ -12,4 +12,12 @@ sealed class Result<out T> {
     fun onFailure(action: (Exception) -> Unit) = apply {
         if (this is Failure) action(e)
     }
+
+    fun getOrNull() = (this as? Success)?.data
+
+    val isSuccess: Boolean
+        get() = this is Success
+
+    val isLoading: Boolean
+        get() = this is Loading
 }

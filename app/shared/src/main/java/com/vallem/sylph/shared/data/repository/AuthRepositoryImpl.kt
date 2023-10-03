@@ -12,7 +12,9 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 @Singleton
-class AuthRepositoryImpl @Inject constructor(private val auth: FirebaseAuth) : AuthRepository {
+class AuthRepositoryImpl @Inject constructor(
+    private val auth: FirebaseAuth,
+) : AuthRepository {
     override val currentUser: FirebaseUser?
         get() = auth.currentUser
 
@@ -41,5 +43,7 @@ class AuthRepositoryImpl @Inject constructor(private val auth: FirebaseAuth) : A
         }
     }
 
-    override fun logout() = auth.signOut()
+    override suspend fun logout() {
+        auth.signOut()
+    }
 }

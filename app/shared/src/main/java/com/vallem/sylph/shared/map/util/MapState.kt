@@ -10,12 +10,16 @@ import androidx.compose.runtime.setValue
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
+import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.StyleInterface
+import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.locationcomponent.location
 import com.vallem.sylph.shared.R
 import com.vallem.sylph.util.extensions.getDrawable
 import com.vallem.sylph.util.extensions.toBitmap
@@ -36,6 +40,13 @@ class MapState(center: Point?) {
         this.center = center
     }
 
+    fun setCameraOptions(cameraOptions: CameraOptions) = mapView
+        ?.getMapboxMap()
+        ?.run {
+            setCamera(cameraOptions)
+            cameraOptions.center?.let { recenter(it) }
+        }
+
     fun recenter(center: Point) {
         this.center = center
     }
@@ -43,6 +54,11 @@ class MapState(center: Point?) {
     fun setView(view: MapView) {
         mapView = view
     }
+
+    fun style(block: StyleInterface.() -> Unit) = mapView
+        ?.getMapboxMap()
+        ?.getStyle()
+        ?.run(block)
 
     fun zoomToLocation(point: Point, zoom: Double = 12.0, duration: Long = 1000L) {
         mapView?.camera?.easeTo(
@@ -74,6 +90,23 @@ class MapState(center: Point?) {
         }
     }
 }
+
+fun MapView.defaultStyle(isDarkMode: Boolean, action: Style.() -> Unit = {}) =
+    getMapboxMap().loadStyleUri(
+        styleUri = if (isDarkMode) Style.TRAFFIC_NIGHT else Style.TRAFFIC_DAY
+    ) {
+        location.updateSettings {
+            enabled = true
+            locationPuck = LocationPuck2D(
+                topImage = context.getDrawable(
+                    R.drawable.ic_location_on_24,
+                    com.vallem.componentlibrary.R.color.purple_200
+                )
+            )
+        }
+
+        action(it)
+    }
 
 @Composable
 fun rememberMapState(center: Point?): MapState {

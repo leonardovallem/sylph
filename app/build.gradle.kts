@@ -62,11 +62,16 @@ dependencies {
     implementation(SylphDependencies.Libs.ThirdParty.AWS.DynamoDb)
 
     implementation(SylphDependencies.Libs.Android.Hilt)
+    implementation(project(mapOf("path" to ":app:events")))
+    implementation(project(mapOf("path" to ":app:home")))
     kapt(SylphDependencies.Libs.Android.HiltKapt)
 
     implementation(SylphDependencies.Libs.Android.DataStore)
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
+
+    implementation(SylphDependencies.Libs.Android.Room)
+    ksp(SylphDependencies.Libs.Android.RoomKsp)
 
     implementation(SylphDependencies.Libs.Android.Core)
     implementation(SylphDependencies.Libs.Android.LifecycleRuntime)

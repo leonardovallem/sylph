@@ -2,9 +2,12 @@ package com.vallem.sylph.shared.data.remote.impl
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest
 import com.amazonaws.services.dynamodbv2.model.ScanRequest
 import com.amazonaws.services.dynamodbv2.model.Select
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
 import com.vallem.sylph.shared.data.dynamo.DynamoDbClientStore
 import com.vallem.sylph.shared.data.dynamo.DynamoTables
 import com.vallem.sylph.shared.data.dynamo.dto.Event
@@ -19,6 +22,12 @@ class DynamoEventDataSource(
         PutItemRequest(DynamoTables.Events, event.toDynamoItem())
     )
 
+    override suspend fun retrieveEventDetails(id: String) = client?.getItem(
+        GetItemRequest(DynamoTables.Events, mapOf("event_id" to AttributeValue(id)))
+    )
+        ?.item
+        ?.let(EventMapper::fromDynamoItem)
+
     override suspend fun retrieveUserEvents(userId: String) = client?.scan(
         ScanRequest(DynamoTables.Events)
             .withSelect(Select.ALL_ATTRIBUTES)
@@ -29,4 +38,12 @@ class DynamoEventDataSource(
     )
         ?.items
         ?.mapNotNull(EventMapper::fromDynamoItem)
+
+    override suspend fun retrieveAllEvents() = client?.scan(
+        ScanRequest(DynamoTables.Events).withProjectionExpression("feature")
+    )
+        ?.items
+        ?.mapNotNull { it.values.firstOrNull()?.s }
+        ?.map { Feature.fromJson(it) }
+        ?.let(FeatureCollection::fromFeatures)
 }
