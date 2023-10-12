@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -31,7 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +47,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -164,7 +166,9 @@ private fun RegisterScreen(
                         "Parece que você já tem uma conta! Agora é só fazer o login."
                     }
 
-                    else -> signUpResult.e.localizedMessage.toString()
+                    else -> signUpResult.e.localizedMessage
+                        ?.toString()
+                        ?: "Erro desconhecido"
                 },
             )
 
@@ -189,7 +193,11 @@ private fun RegisterScreen(
             )
         },
         bottomBar = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
                 SylphButton.Elevated(
                     label = "Criar conta",
                     enabled = state.validInput,
@@ -201,17 +209,21 @@ private fun RegisterScreen(
                         container = TransFlagColors.Blue,
                         content = TransFlagColors.OnBlue
                     ),
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                // TODO add onclick
-                Text(
-                    text = "Já tem uma conta? Faça o login agora mesmo!",
+                ClickableText(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            MaterialTheme.typography.labelMedium
+                                .toSpanStyle()
+                                .copy(color = MaterialTheme.colorScheme.primary)
+                        ) {
+                            append("Já tem uma conta? Faça o login agora mesmo!")
+                        }
+                    },
+                    onClick = { navigator.popBackStack() },
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(12.dp),
                 )
             }
         },
