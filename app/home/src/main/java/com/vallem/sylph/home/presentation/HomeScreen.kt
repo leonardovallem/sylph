@@ -139,13 +139,13 @@ fun HomeScreen(
     ColorSystemBars()
 
     OnLifecycleEvent(
-        onPause = {
+        onDestroy = {
             mapState.mapView
                 ?.getMapboxMap()
                 ?.cameraState
                 ?.let(viewModel::saveMapCameraState)
         },
-        onResume = {
+        onCreate = {
             mapCameraState
                 ?.toCameraState()
                 ?.toCameraOptions()
