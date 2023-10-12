@@ -1,6 +1,8 @@
 package com.vallem.init
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
@@ -15,6 +17,7 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.ramcosta.composedestinations.animations.defaults.RootNavGraphDefaultAnimations
 import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
 import com.ramcosta.composedestinations.manualcomposablecalls.ManualComposableCallsBuilder
 import com.ramcosta.composedestinations.spec.NavGraphSpec
@@ -45,7 +48,14 @@ class SylphNavHost @Inject constructor(private val auth: FirebaseAuth) {
         }
         val bottomSheetNavigator = remember { BottomSheetNavigator(bottomSheetState) }
         navController.navigatorProvider += bottomSheetNavigator
-        val navHostEngine = rememberAnimatedNavHostEngine()
+        val navHostEngine = rememberAnimatedNavHostEngine(
+            rootDefaultAnimations = RootNavGraphDefaultAnimations(
+                enterTransition = { slideInHorizontally { it } },
+                exitTransition = { slideOutHorizontally { -it } },
+                popEnterTransition = { slideInHorizontally { -it } },
+                popExitTransition = { slideOutHorizontally { it } },
+            )
+        )
 
         ModalBottomSheetLayout(
             bottomSheetNavigator = bottomSheetNavigator,
