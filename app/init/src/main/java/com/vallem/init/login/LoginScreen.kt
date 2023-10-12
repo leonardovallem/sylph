@@ -1,10 +1,16 @@
 package com.vallem.init.login
 
-import androidx.compose.animation.AnimatedContent
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult.Companion.ACTION_INTENT_SENDER_REQUEST
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult.Companion.EXTRA_SEND_INTENT_EXCEPTION
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -17,17 +23,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,17 +58,31 @@ import com.vallem.componentlibrary.ui.input.SylphTextField
 import com.vallem.componentlibrary.ui.input.SylphTextFieldState
 import com.vallem.componentlibrary.ui.input.errorIf
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
+import com.vallem.init.components.GoogleSignInButton
 import com.vallem.init.destinations.RegisterScreenDestination
 import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
+import com.vallem.sylph.shared.Routes
+import com.vallem.sylph.shared.auth.FakeGoogleSignInClient
+import com.vallem.sylph.shared.auth.GoogleSignInClient
 import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.extensions.launchCatching
+import com.vallem.sylph.shared.util.showToastMessage
+import kotlinx.coroutines.launch
 
-@Destination(route = com.vallem.sylph.shared.Routes.Screen.Login)
+@Destination(route = Routes.Screen.Login)
 @Composable
 fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hiltViewModel()) {
     val snackbarHostState = remember { SnackbarHostState() }
     val formState = with(viewModel) {
         remember(email, validEmail, password, validPassword, validInput) {
-            LoginFormState(email, validEmail, password, validPassword, validInput)
+            LoginFormState(
+                email = email,
+                validEmail = validEmail,
+                password = password,
+                validPassword = validPassword,
+                validInput = validInput,
+                hasGoogleFunctionality = hasGoogleFunctionality
+            )
         }
     }
 
@@ -86,22 +111,53 @@ fun LoginScreen(navigator: DestinationsNavigator, viewModel: LoginViewModel = hi
         onEvent = viewModel::onEvent,
         snackbarHostState = snackbarHostState,
         goToRegisterScreen = { navigator.navigate(RegisterScreenDestination) },
+        googleSignInClient = viewModel.googleSignInClient,
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LoginScreenContent(
     loginResult: Result<FirebaseUser>?,
     state: LoginFormState,
     onEvent: (LoginEvent) -> Unit,
     snackbarHostState: SnackbarHostState,
+    googleSignInClient: GoogleSignInClient,
     goToRegisterScreen: () -> Unit,
 ) {
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val (emailIcon, passwordIcon) = MaterialTheme.colorScheme.run {
         onSurfaceVariant pairWith primary
     }.forIcons(Icons.Outlined.Person, Icons.Outlined.Email, Icons.Outlined.Lock)
+
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(StartIntentSenderForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            if (result.data?.action == ACTION_INTENT_SENDER_REQUEST) {
+                val exception = result.data?.getSerializableExtra(EXTRA_SEND_INTENT_EXCEPTION) as? Exception
+
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = exception?.localizedMessage ?: "Erro ao entrar com a conta Google",
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            }
+
+            return@rememberLauncherForActivityResult
+        }
+
+        runCatching {
+            result.data?.let {
+                val credentials = googleSignInClient.getCredentialsFromIntent(it)
+                onEvent(LoginEvent.SignIn.WithGoogle(credentials))
+            }
+        }
+    }
+
+    var googleLoading by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -139,48 +195,67 @@ private fun LoginScreenContent(
                     placeholder = "Password",
                     leadingIcon = passwordIcon,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                    keyboardActions = KeyboardActions(onGo = { onEvent(LoginEvent.SignIn) }),
+                    keyboardActions = KeyboardActions(
+                        onGo = { onEvent(LoginEvent.SignIn.WithCurrentData) },
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .imePadding()
                 )
             }
 
-            AnimatedContent(
-                targetState = loginResult == Result.Loading,
-                label = "LoginAction"
-            ) { isLoading ->
-                if (isLoading) Box(
-                    contentAlignment = Alignment.Center,
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SylphButton.Pill(
+                    label = "Login",
+                    enabled = state.validInput,
+                    isLoading = loginResult == Result.Loading,
+                    onClick = {
+                        onEvent(LoginEvent.SignIn.WithCurrentData)
+                        keyboardController?.hide()
+                    },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                ) {
-                    CircularProgressIndicator()
-                } else Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SylphButton.Pill(
-                        label = "Login",
-                        enabled = state.validInput,
-                        isLoading = loginResult == Result.Loading,
-                        onClick = {
-                            onEvent(LoginEvent.SignIn)
-                            keyboardController?.hide()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(0.5f)
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    )
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(text = "Ainda não tem uma conta?")
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = "Ainda não tem uma conta?")
-
                         SylphTextButton(
                             label = "Criar conta",
                             onClick = goToRegisterScreen,
+                        )
+
+                        if (state.hasGoogleFunctionality) GoogleSignInButton(
+                            isLoading = googleLoading,
+                            onClick = {
+                                scope.launchCatching(
+                                    onError = {
+                                        googleLoading = false
+                                        context.showToastMessage(
+                                            text = it.localizedMessage ?: "Erro desconhecido",
+                                        )
+                                    }
+                                ) {
+                                    googleLoading = true
+                                    val res = googleSignInClient.getGoogleSignInResult()
+                                    val intentSenderRequest = IntentSenderRequest
+                                        .Builder(res.pendingIntent.intentSender)
+                                        .build()
+
+                                    googleLoading = false
+                                    launcher.launch(intentSenderRequest)
+                                }
+                            },
                         )
                     }
                 }
@@ -194,9 +269,10 @@ private fun LoginScreenContent(
 private fun LoginScreenPreview() {
     LoginScreenContent(
         loginResult = null,
-        state = LoginFormState("", false, "", false, false),
+        state = LoginFormState("", false, "", false, false, true),
         onEvent = {},
         snackbarHostState = remember { SnackbarHostState() },
         goToRegisterScreen = {},
+        googleSignInClient = FakeGoogleSignInClient(),
     )
 }

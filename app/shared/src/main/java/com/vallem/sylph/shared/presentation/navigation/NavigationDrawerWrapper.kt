@@ -1,5 +1,6 @@
 package com.vallem.sylph.shared.presentation.navigation
 
+import android.util.Log
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
@@ -32,6 +33,10 @@ fun <T : NavigationShortcut> NavigationDrawerWrapper(
     val scope = rememberCoroutineScope()
     val userInfo by viewModel.userInfo.collectAsState()
     val navigationEvent by viewModel.navigationEvent.collectAsState(null)
+
+    LaunchedEffect(userInfo) {
+        Log.i("NavigationDrawerWrapper", userInfo.toString())
+    }
 
     LaunchedEffect(Unit) {
         drawerState.snapTo(DrawerValue.Closed)
