@@ -112,7 +112,7 @@ private fun EventDetailsBottomSheet(
     when (val res = eventResult) {
         is Result.Success -> res.data?.let { details ->
             EventDetailsBottomSheetBase(event = details.event) {
-                if (details.event.userId == viewModel.currentUserId) Column(
+                if (details.event.userId != viewModel.currentUserId) Column(
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Row(
