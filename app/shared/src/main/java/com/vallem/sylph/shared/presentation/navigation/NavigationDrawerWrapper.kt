@@ -1,6 +1,5 @@
 package com.vallem.sylph.shared.presentation.navigation
 
-import android.util.Log
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
@@ -16,6 +15,7 @@ import com.vallem.componentlibrary.ui.drawer.SylphNavigationDrawer
 import com.vallem.componentlibrary.ui.user.UserInfoSkeleton
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.extensions.getSylphExceptionMessage
 import com.vallem.sylph.shared.presentation.components.AlertLevel
 import com.vallem.sylph.shared.presentation.components.AlertMessage
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
@@ -33,10 +33,6 @@ fun <T : NavigationShortcut> NavigationDrawerWrapper(
     val scope = rememberCoroutineScope()
     val userInfo by viewModel.userInfo.collectAsState()
     val navigationEvent by viewModel.navigationEvent.collectAsState(null)
-
-    LaunchedEffect(userInfo) {
-        Log.i("NavigationDrawerWrapper", userInfo.toString())
-    }
 
     LaunchedEffect(Unit) {
         drawerState.snapTo(DrawerValue.Closed)
@@ -75,7 +71,7 @@ fun <T : NavigationShortcut> NavigationDrawerWrapper(
                     middleContent = {
                         if (res is Result.Failure) AlertMessage(
                             title = "Algo deu errado...",
-                            description = "Ocorreu um erro ao recuperar os seus dados",
+                            description = res.e.getSylphExceptionMessage("Ocorreu um erro ao recuperar os seus dados"),
                             level = AlertLevel.Error,
                         )
                     },

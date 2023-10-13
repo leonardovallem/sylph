@@ -45,10 +45,13 @@ internal fun DetailsLoading(modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun DetailsRetrievalError(modifier: Modifier = Modifier) {
+internal fun DetailsRetrievalError(
+    description: String,
+    modifier: Modifier = Modifier,
+) {
     AlertMessage(
         title = "Algo deu errado...",
-        description = "Ocorreu um erro ao recuperar os detalhes desse evento.",
+        description = description,
         level = AlertLevel.Error,
         modifier = modifier
             .fillMaxWidth()
@@ -71,7 +74,10 @@ private fun DetailsLoadingPreview() {
 private fun DetailsErrorPreview() {
     SylphTheme {
         SylphBottomSheet {
-            DetailsRetrievalError(Modifier.padding(it))
+            DetailsRetrievalError(
+                description = "Ocorreu um erro ao recuperar os detalhes desse evento.",
+                modifier = Modifier.padding(it)
+            )
         }
     }
 }

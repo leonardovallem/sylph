@@ -1,13 +1,14 @@
 package com.vallem.sylph.shared.data.repository
 
 import com.vallem.componentlibrary.domain.model.UserInfo
-import com.vallem.sylph.shared.data.dynamo.DynamoDbInstantiationException
 import com.vallem.sylph.shared.data.dynamo.dto.User
 import com.vallem.sylph.shared.data.entity.UserInfoEntity
 import com.vallem.sylph.shared.data.local.UserInfoDao
 import com.vallem.sylph.shared.data.mapper.toDomain
 import com.vallem.sylph.shared.data.mapper.toEntity
 import com.vallem.sylph.shared.data.remote.UserRemoteDataSource
+import com.vallem.sylph.shared.domain.exception.UserNotFoundException
+import com.vallem.sylph.shared.domain.exception.UserSavingException
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.UserDetails
 import com.vallem.sylph.shared.domain.model.UserEventsMetaData
@@ -26,7 +27,7 @@ class UserRepositoryImpl(
             ?.let {
                 userInfoDao.insert(UserInfoEntity(name, picture, id))
                 Result.Success(Unit)
-            } ?: Result.Failure(DynamoDbInstantiationException())
+            } ?: Result.Failure(UserSavingException())
     } catch (e: Exception) {
         Result.Failure(e)
     }
@@ -38,7 +39,7 @@ class UserRepositoryImpl(
         else {
             val remote = userDataSource.retrieveDetails(userId)
 
-            if (remote == null) Result.Failure(DynamoDbInstantiationException())
+            if (remote == null) Result.Failure(UserNotFoundException())
             else {
                 val userInfo = UserInfo(remote.name, remote.picture)
                 userInfoDao.insert(userInfo.toEntity(userId))
@@ -51,21 +52,24 @@ class UserRepositoryImpl(
 
     override suspend fun retrieveDetails(userId: String) = try {
         val userInfo = retrieveUserInfo(userId).getOrNull()
-        val userVotes = votesRepository.retrieveVoteCountsForUserEvents(userId).getOrNull()
-        val userEvents = eventsRepository.retrieveUserEvents(userId).getOrNull()
 
-        if (userInfo == null || userEvents == null) Result.Failure(DynamoDbInstantiationException())
-        else Result.Success(
-            UserDetails(
-                name = userInfo.name,
-                picUrl = userInfo.picture,
-                eventsMetaData = UserEventsMetaData(
-                    totalPublishedEvents = userEvents.size,
-                    eventsUpVotes = userVotes?.upVotes ?: 0,
-                    eventsDownVotes = userVotes?.downVotes ?: 0,
+        if (userInfo == null) Result.Failure(UserNotFoundException())
+        else {
+            val userEvents = eventsRepository.retrieveUserEvents(userId).getOrNull()
+            val userVotes = votesRepository.retrieveVoteCountsForUserEvents(userId).getOrNull()
+
+            Result.Success(
+                UserDetails(
+                    name = userInfo.name,
+                    picUrl = userInfo.picture,
+                    eventsMetaData = UserEventsMetaData(
+                        totalPublishedEvents = userEvents?.size ?: 0,
+                        eventsUpVotes = userVotes?.upVotes ?: 0,
+                        eventsDownVotes = userVotes?.downVotes ?: 0,
+                    )
                 )
             )
-        )
+        }
     } catch (e: Exception) {
         Result.Failure(e)
     }

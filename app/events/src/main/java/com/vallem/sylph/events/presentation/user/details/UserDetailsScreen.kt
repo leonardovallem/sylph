@@ -45,6 +45,7 @@ import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.UserDetails
 import com.vallem.sylph.shared.domain.model.UserEventsMetaData
+import com.vallem.sylph.shared.extensions.getSylphExceptionMessage
 import com.vallem.sylph.shared.presentation.components.AlertLevel
 import com.vallem.sylph.shared.presentation.components.AlertMessage
 import com.vallem.sylph.shared.util.isZeroOrOne
@@ -90,7 +91,7 @@ fun UserDetailsScreen(
 
                 is Result.Failure -> AlertMessage(
                     title = "Algo deu errado...",
-                    description = "Ocorreu um erro ao recuperar os detalhes do usuário.",
+                    description = res.e.getSylphExceptionMessage("Ocorreu um erro ao recuperar os detalhes do usuário."),
                     level = AlertLevel.Error,
                     modifier = Modifier
                         .align(Alignment.Center)

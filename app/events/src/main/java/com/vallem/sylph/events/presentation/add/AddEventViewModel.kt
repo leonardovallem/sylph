@@ -22,6 +22,7 @@ class AddEventViewModel @Inject constructor(
     private val eventsRepository: EventsRepository
 ) : ViewModel() {
     var eventSaveResult by mutableStateOf<Result<Unit>?>(null)
+        private set
 
     fun saveEvent(event: Event) {
         if (auth.currentUser == null) {

@@ -45,10 +45,11 @@ import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
+import com.vallem.sylph.shared.extensions.getSylphExceptionMessage
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.presentation.components.FlagLoading
-import com.vallem.sylph.shared.presentation.navigation.NavigationDrawerWrapper
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
+import com.vallem.sylph.shared.presentation.navigation.NavigationDrawerWrapper
 import kotlinx.coroutines.launch
 
 @Destination(route = Routes.Screen.UserEvents)
@@ -140,7 +141,7 @@ private fun UserEventsScreenContent(
                     )
 
                     Text(
-                        text = eventsQueryResult.e.message ?: "Erro desconhecido",
+                        text = eventsQueryResult.e.getSylphExceptionMessage("Erro desconhecido"),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
