@@ -96,6 +96,7 @@ dependencies {
     kapt(SylphDependencies.Libs.Android.HiltKapt)
     implementation(SylphDependencies.Libs.Android.Compose.HiltNavigation)
 
+    implementation(SylphDependencies.Libs.Android.Compose.Accompanist.Permissions)
     implementation(SylphDependencies.Libs.ThirdParty.EasyCrop)
 
     implementation(project(":componentlibrary"))

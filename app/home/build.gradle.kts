@@ -68,6 +68,8 @@ dependencies {
     implementation(SylphDependencies.Libs.Android.Compose.HiltNavigation)
     kapt(SylphDependencies.Libs.Android.HiltKapt)
 
+    implementation(SylphDependencies.Libs.Android.Compose.Accompanist.Permissions)
+
     implementation(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Core)
     ksp(SylphDependencies.Libs.ThirdParty.ComposeDestinations.Ksp)
 
