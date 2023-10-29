@@ -10,7 +10,8 @@ fun List<EventVote>.toVoteCount() = partition {
 
 fun EventVote.toDynamoItem() = mutableMapOf<String, AttributeValue>().apply {
     this["event_id"] = AttributeValue(eventId)
-    this["user_id"] = AttributeValue(votingUserId)
+    this["voting_user_id"] = AttributeValue(votingUserId)
+    this["event_publisher_id"] = AttributeValue(eventPublisherId)
     this["isUpVote"] = AttributeValue().withBOOL(isUpVote)
 }
 
@@ -18,7 +19,8 @@ object EventVoteMapper {
     fun fromDynamoItem(item: Map<String, AttributeValue>): EventVote? {
         return EventVote(
             eventId = item["event_id"]?.s ?: return null,
-            votingUserId = item["user_id"]?.s ?: return null,
+            votingUserId = item["voting_user_id"]?.s ?: return null,
+            eventPublisherId = item["event_publisher_id"]?.s ?: return null,
             isUpVote = item["isUpVote"]?.bool ?: return null,
         )
     }

@@ -75,7 +75,7 @@ class EventDetailsViewModel @Inject constructor(
                     _voteResult.value = Result.Success(null)
                     updateVoteCount(event.id!!)
                 }
-                else votesRepository.vote(event.id!!, auth.currentUser!!.uid, vote).onSuccess {
+                else votesRepository.vote(event.id!!, auth.currentUser!!.uid, event.userId, vote).onSuccess {
                     _voteResult.value = Result.Success(vote)
                     updateVoteCount(event.id!!)
                 }

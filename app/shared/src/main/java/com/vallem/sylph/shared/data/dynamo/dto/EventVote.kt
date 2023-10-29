@@ -7,5 +7,6 @@ import kotlinx.parcelize.Parcelize
 data class EventVote(
     val eventId: String,
     val votingUserId: String,
+    val eventPublisherId: String,
     val isUpVote: Boolean,
 ) : Parcelable

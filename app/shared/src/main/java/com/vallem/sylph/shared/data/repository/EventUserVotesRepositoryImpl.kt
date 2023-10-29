@@ -13,8 +13,20 @@ import com.vallem.sylph.shared.data.dynamo.dto.EventVote as EventVoteDto
 class EventUserVotesRepositoryImpl(
     private val dataSource: EventVotesRemoteDataSource
 ) : EventUserVotesRepository {
-    override suspend fun vote(eventId: String, votingUserId: String, vote: EventVote) = try {
-        dataSource.vote(EventVoteDto(eventId, votingUserId, vote == EventVote.UpVote))
+    override suspend fun vote(
+        eventId: String,
+        votingUserId: String,
+        eventPublisherId: String,
+        vote: EventVote,
+    ) = try {
+        dataSource.vote(
+            EventVoteDto(
+                eventId,
+                votingUserId,
+                eventPublisherId,
+                vote == EventVote.UpVote
+            )
+        )
             ?.let { Result.Success(Unit) }
             ?: Result.Failure(VoteSavingException())
     } catch (e: Exception) {
