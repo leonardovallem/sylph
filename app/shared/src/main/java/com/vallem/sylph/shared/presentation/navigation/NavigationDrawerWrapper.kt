@@ -15,6 +15,7 @@ import com.vallem.componentlibrary.ui.drawer.SylphNavigationDrawer
 import com.vallem.componentlibrary.ui.user.UserInfoSkeleton
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
+import com.vallem.sylph.shared.extensions.getSylphExceptionMessage
 import com.vallem.sylph.shared.presentation.components.AlertLevel
 import com.vallem.sylph.shared.presentation.components.AlertMessage
 import com.vallem.sylph.shared.presentation.model.NavigationShortcut
@@ -70,7 +71,7 @@ fun <T : NavigationShortcut> NavigationDrawerWrapper(
                     middleContent = {
                         if (res is Result.Failure) AlertMessage(
                             title = "Algo deu errado...",
-                            description = "Ocorreu um erro ao recuperar os seus dados",
+                            description = res.e.getSylphExceptionMessage("Ocorreu um erro ao recuperar os seus dados"),
                             level = AlertLevel.Error,
                         )
                     },

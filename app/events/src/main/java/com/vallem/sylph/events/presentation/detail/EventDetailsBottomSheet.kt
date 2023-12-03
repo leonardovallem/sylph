@@ -62,6 +62,7 @@ import com.vallem.sylph.shared.domain.model.event.EventVote
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
 import com.vallem.sylph.shared.extensions.asGeoIntent
+import com.vallem.sylph.shared.extensions.getSylphExceptionMessage
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapLocation
 
@@ -112,7 +113,7 @@ private fun EventDetailsBottomSheet(
     when (val res = eventResult) {
         is Result.Success -> res.data?.let { details ->
             EventDetailsBottomSheetBase(event = details.event) {
-                if (details.event.userId == viewModel.currentUserId) Column(
+                if (details.event.userId != viewModel.currentUserId) Column(
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Row(
@@ -132,11 +133,11 @@ private fun EventDetailsBottomSheet(
                                 .padding(start = 8.dp),
                         )
 
-                        when (voteResult) {
+                        when (val voteRes = voteResult) {
                             is Result.Loading -> SylphLoading.Circular()
                             is Result.Failure -> Icon(
                                 imageVector = Icons.Rounded.WarningAmber,
-                                contentDescription = "Erro no sistema de votação",
+                                contentDescription = voteRes.e.getSylphExceptionMessage("Erro no sistema de votação"),
                             )
 
                             else -> {
@@ -178,7 +179,10 @@ private fun EventDetailsBottomSheet(
             }
         }
 
-        is Result.Failure -> DetailsRetrievalError(modifier = modifier)
+        is Result.Failure -> DetailsRetrievalError(
+            description = res.e.getSylphExceptionMessage("Ocorreu um erro ao recuperar os detalhes desse evento."),
+            modifier = modifier,
+        )
 
         Result.Loading -> DetailsLoading(modifier = modifier)
     }

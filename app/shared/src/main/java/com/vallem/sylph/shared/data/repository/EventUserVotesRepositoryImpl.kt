@@ -1,8 +1,9 @@
 package com.vallem.sylph.shared.data.repository
 
-import com.vallem.sylph.shared.data.dynamo.DynamoDbInstantiationException
 import com.vallem.sylph.shared.data.mapper.toVoteCount
 import com.vallem.sylph.shared.data.remote.EventVotesRemoteDataSource
+import com.vallem.sylph.shared.domain.exception.VoteCountRetrievalException
+import com.vallem.sylph.shared.domain.exception.VoteSavingException
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.EventVote
 import com.vallem.sylph.shared.domain.model.event.toEventVote
@@ -12,10 +13,22 @@ import com.vallem.sylph.shared.data.dynamo.dto.EventVote as EventVoteDto
 class EventUserVotesRepositoryImpl(
     private val dataSource: EventVotesRemoteDataSource
 ) : EventUserVotesRepository {
-    override suspend fun vote(eventId: String, votingUserId: String, vote: EventVote) = try {
-        dataSource.vote(EventVoteDto(eventId, votingUserId, vote == EventVote.UpVote))
+    override suspend fun vote(
+        eventId: String,
+        votingUserId: String,
+        eventPublisherId: String,
+        vote: EventVote,
+    ) = try {
+        dataSource.vote(
+            EventVoteDto(
+                eventId,
+                votingUserId,
+                eventPublisherId,
+                vote == EventVote.UpVote
+            )
+        )
             ?.let { Result.Success(Unit) }
-            ?: Result.Failure(DynamoDbInstantiationException())
+            ?: Result.Failure(VoteSavingException())
     } catch (e: Exception) {
         Result.Failure(e)
     }
@@ -23,7 +36,7 @@ class EventUserVotesRepositoryImpl(
     override suspend fun clearVote(eventId: String, votingUserId: String) = try {
         dataSource.clearVote(eventId, votingUserId)
             ?.let { Result.Success(Unit) }
-            ?: Result.Failure(DynamoDbInstantiationException())
+            ?: Result.Failure(VoteSavingException())
     } catch (e: Exception) {
         Result.Failure(e)
     }
@@ -40,7 +53,7 @@ class EventUserVotesRepositoryImpl(
         dataSource.retrieveVotesForEvent(eventId)
             ?.toVoteCount()
             ?.let { Result.Success(it) }
-            ?: Result.Failure(DynamoDbInstantiationException())
+            ?: Result.Failure(VoteCountRetrievalException())
     } catch (e: Exception) {
         Result.Failure(e)
     }
@@ -49,7 +62,7 @@ class EventUserVotesRepositoryImpl(
         dataSource.retrieveVotesForUserEvents(userId)
             ?.toVoteCount()
             ?.let { Result.Success(it) }
-            ?: Result.Failure(DynamoDbInstantiationException())
+            ?: Result.Failure(VoteCountRetrievalException())
     } catch (e: Exception) {
         Result.Failure(e)
     }

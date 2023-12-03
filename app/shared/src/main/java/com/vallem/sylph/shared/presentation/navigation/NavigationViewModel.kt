@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vallem.componentlibrary.domain.model.UserInfo
 import com.vallem.sylph.shared.domain.model.Result
-import com.vallem.sylph.shared.domain.repository.AuthRepository
+import com.vallem.sylph.shared.domain.repository.FirebaseAuthRepository
 import com.vallem.sylph.shared.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 @HiltViewModel
 class NavigationViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository,
+    private val authRepository: FirebaseAuthRepository,
 ) : ViewModel() {
     private val _userInfo = MutableStateFlow<Result<UserInfo?>>(Result.Loading)
     val userInfo = _userInfo.asStateFlow()

@@ -1,5 +1,7 @@
 package com.vallem.sylph.home.presentation
 
+import android.Manifest
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -49,6 +51,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.mapbox.bindgen.Value
 import com.mapbox.geojson.Point
 import com.mapbox.maps.ScreenBox
@@ -98,6 +102,7 @@ import com.vallem.sylph.shared.util.truthyCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Destination(route = Routes.Screen.Home)
 @Composable
 fun HomeScreen(
@@ -106,9 +111,10 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
+    val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val snackbarHostState = remember { SnackbarHostState() }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val locationProvider = rememberLocationProvider()
+    val locationProvider = rememberLocationProvider(locationPermissionState)
     val isDarkMode = isSystemInDarkTheme()
 
     val eventsFeatures by viewModel.eventsFeatures.collectAsState(viewModel.viewModelScope.coroutineContext)
@@ -117,8 +123,9 @@ fun HomeScreen(
         (mapCameraState ?: MapCameraState.Default).toCameraState()
     }
 
-    val location by locationProvider.location.collectAsState(initial = null)
-    val isLocationEnabled by locationProvider.isLocationEnabled.collectAsState(initial = false)
+    val location = locationProvider?.location?.collectAsState(initial = null)?.value
+    val isLocationEnabled =
+        locationProvider?.isLocationEnabled?.collectAsState(initial = false)?.value
 
     val mapState = rememberMapState(center = location?.point)
 
@@ -138,14 +145,16 @@ fun HomeScreen(
 
     ColorSystemBars()
 
+    BackHandler(onBack = navigator::popBackStack)
+
     OnLifecycleEvent(
-        onPause = {
+        onDestroy = {
             mapState.mapView
                 ?.getMapboxMap()
                 ?.cameraState
                 ?.let(viewModel::saveMapCameraState)
         },
-        onResume = {
+        onCreate = {
             mapCameraState
                 ?.toCameraState()
                 ?.toCameraOptions()
@@ -161,7 +170,7 @@ fun HomeScreen(
         when (val features = eventsFeatures) {
             is Result.Success -> mapState.mapView?.defaultStyle(isDarkMode) {
                 getSource(EventHeatmap.EventDataSourceId)
-                    ?: addSource(EventHeatmap.sourceFrom(features.data))
+                    ?: addSource(EventHeatmap.sourceFrom(features.data, true))
                 getLayer(EventHeatmap.Layers.Id.Danger)
                     ?: addPersistentLayer(EventHeatmap.Layers.Danger)
                 getLayer(EventHeatmap.Layers.Id.Safety)
@@ -228,8 +237,14 @@ fun HomeScreen(
                 ) {
                     FloatingActionButton(
                         onClick = {
-                            if (isLocationEnabled) mapState.center()
-                            else locationProvider.requestEnableLocation(locationSettingLauncher)
+                            when (isLocationEnabled) {
+                                true -> mapState.center()
+                                false -> locationProvider.requestEnableLocation(
+                                    locationSettingLauncher
+                                )
+
+                                null -> locationPermissionState.launchPermissionRequest()
+                            }
                         },
                         containerColor = TransFlagColors.Pink,
                         modifier = Modifier.shadow(
@@ -239,11 +254,11 @@ fun HomeScreen(
                         ),
                     ) {
                         AnimatedContent(
-                            targetState = locationProvider.fabState,
+                            targetState = locationProvider?.fabState,
                             label = "HomeScreenFabTransform"
                         ) {
                             when (it) {
-                                HomeScreenFabState.LocationDisabled -> Icon(
+                                HomeScreenFabState.LocationDisabled, null -> Icon(
                                     imageVector = Icons.Rounded.LocationOn,
                                     contentDescription = "Centralizar mapa em sua localização"
                                 )

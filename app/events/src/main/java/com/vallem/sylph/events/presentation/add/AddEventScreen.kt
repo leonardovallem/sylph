@@ -73,6 +73,7 @@ import com.vallem.sylph.shared.domain.model.event.DangerVictim
 import com.vallem.sylph.shared.domain.model.event.Event
 import com.vallem.sylph.shared.domain.model.event.SafetyEvent
 import com.vallem.sylph.shared.domain.model.event.SafetyReason
+import com.vallem.sylph.shared.extensions.getSylphExceptionMessage
 import com.vallem.sylph.shared.map.model.PointWrapper
 import com.vallem.sylph.shared.map.presentation.MapBox
 import com.vallem.sylph.shared.map.util.rememberMapState
@@ -109,13 +110,15 @@ fun AddEventScreen(
     }
 
     LaunchedEffect(viewModel.eventSaveResult) {
-        when (viewModel.eventSaveResult) {
+        when (val res = viewModel.eventSaveResult) {
             is Result.Success -> {
                 navigator.navigateBack(result = true)
                 snackbarHostState.showSnackbar(message = "Evento salvo com sucesso!")
             }
 
-            is Result.Failure -> snackbarHostState.showSnackbar(message = "Erro ao salvar evento")
+            is Result.Failure -> snackbarHostState.showSnackbar(
+                message = res.e.getSylphExceptionMessage("Erro ao salvar evento"),
+            )
 
             else -> Unit
         }

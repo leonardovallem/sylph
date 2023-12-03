@@ -63,6 +63,7 @@ dependencies {
 
     implementation(platform(SylphDependencies.Libs.ThirdParty.Firebase.Bom))
     implementation(SylphDependencies.Libs.ThirdParty.Firebase.Auth)
+    implementation(SylphDependencies.Libs.Android.Google.Auth)
 
     implementation(SylphDependencies.Libs.ThirdParty.EasyCrop)
 

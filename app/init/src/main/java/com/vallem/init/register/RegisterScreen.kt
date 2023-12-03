@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -44,15 +45,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseUser
 import com.mr0xf00.easycrop.crop
 import com.mr0xf00.easycrop.rememberImageCropper
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.vallem.componentlibrary.ui.appbar.SylphTopBar
 import com.vallem.componentlibrary.ui.button.SylphButton
 import com.vallem.componentlibrary.ui.button.SylphButtonDefaults
@@ -62,6 +69,7 @@ import com.vallem.componentlibrary.ui.input.SylphTextField
 import com.vallem.componentlibrary.ui.input.SylphTextFieldState
 import com.vallem.componentlibrary.ui.input.errorIf
 import com.vallem.componentlibrary.ui.theme.ColorSystemBars
+import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.componentlibrary.util.ValidationRule
 import com.vallem.init.destinations.OnboardingScreenDestination
@@ -79,8 +87,50 @@ fun RegisterScreen(
     navigator: DestinationsNavigator,
     viewModel: RegisterViewModel = hiltViewModel(),
 ) {
+    val state = with(viewModel) {
+        remember(
+            name,
+            validName,
+            email,
+            validEmail,
+            password,
+            validPassword,
+            passwordConfirmation,
+            validPasswordConfirmation,
+            validInput,
+        ) {
+            RegisterFormState(
+                name = name,
+                validName = validName,
+                email = email,
+                validEmail = validEmail,
+                password = password,
+                validPassword = validPassword,
+                passwordConfirmation = passwordConfirmation,
+                validPasswordConfirmation = validPasswordConfirmation,
+                validInput = validInput,
+            )
+        }
+    }
+
+    RegisterScreen(
+        navigator = navigator,
+        signUpResult = viewModel.signUpResult,
+        state = state,
+        onEvent = viewModel::onEvent,
+    )
+}
+
+@Composable
+private fun RegisterScreen(
+    navigator: DestinationsNavigator,
+    signUpResult: Result<FirebaseUser>?,
+    state: RegisterFormState,
+    onEvent: (RegisterEvent) -> Unit,
+) {
     val context = LocalContext.current
 
+    val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
     val imageCropper = rememberImageCropper()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -93,7 +143,7 @@ fun RegisterScreen(
         scope.launch {
             val result = imageCropper.crop(uri, context)
             result.getOrNull()?.let {
-                viewModel.updatePicture(it.resized(300, 300))
+                onEvent(RegisterEvent.Update.Picture(it.resized(300, 300)))
                 pic = it
             }
         }
@@ -105,18 +155,20 @@ fun RegisterScreen(
 
     ColorSystemBars()
 
-    LaunchedEffect(viewModel.signUpResult) {
-        when (val result = viewModel.signUpResult) {
+    LaunchedEffect(signUpResult) {
+        when (signUpResult) {
             is Result.Success -> navigator.navigate(OnboardingScreenDestination)
 
             is Result.Failure -> snackbarHostState.showSnackbar(
-                message = when (result.e) {
+                message = when (signUpResult.e) {
                     is FirebaseAuthUserCollisionException -> {
                         navigator.popBackStack()
-                        "User already registered. Please login with your account"
+                        "Parece que você já tem uma conta! Agora é só fazer o login."
                     }
 
-                    else -> result.e.message.toString()
+                    else -> signUpResult.e.localizedMessage
+                        ?.toString()
+                        ?: "Erro desconhecido"
                 },
             )
 
@@ -141,18 +193,39 @@ fun RegisterScreen(
             )
         },
         bottomBar = {
-            SylphButton.Elevated(
-                label = "Criar conta",
-                enabled = viewModel.validInput,
-                onClick = viewModel::signUp,
-                colors = SylphButtonDefaults.elevatedColors(
-                    container = TransFlagColors.Blue,
-                    content = TransFlagColors.OnBlue
-                ),
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth()
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                SylphButton.Elevated(
+                    label = "Criar conta",
+                    enabled = state.validInput,
+                    onClick = {
+                        keyboardController?.hide()
+                        onEvent(RegisterEvent.SignUp)
+                    },
+                    colors = SylphButtonDefaults.elevatedColors(
+                        container = TransFlagColors.Blue,
+                        content = TransFlagColors.OnBlue
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                ClickableText(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            MaterialTheme.typography.labelMedium
+                                .toSpanStyle()
+                                .copy(color = MaterialTheme.colorScheme.primary)
+                        ) {
+                            append("Já tem uma conta? Faça o login agora mesmo!")
+                        }
+                    },
+                    onClick = { navigator.popBackStack() },
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
         },
     ) { pv ->
         Column(
@@ -168,6 +241,7 @@ fun RegisterScreen(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
+                    .padding(bottom = 8.dp)
                     .clip(CircleShape)
                     .size(128.dp)
                     .clickable(
@@ -195,12 +269,12 @@ fun RegisterScreen(
             }
 
             SylphTextField.SingleLine(
-                value = viewModel.name,
-                onValueChange = viewModel::updateName,
-                placeholder = "Name",
+                value = state.name,
+                onValueChange = { onEvent(RegisterEvent.Update.Name(it)) },
+                placeholder = "Nome",
                 leadingIcon = nameIcon,
-                state = SylphTextFieldState.errorIf(!viewModel.validName),
-                helperText = "Nome não pode ficar em branco".takeIf { !viewModel.validName },
+                state = SylphTextFieldState.errorIf(!state.validName),
+                helperText = "Nome não pode ficar em branco".takeIf { !state.validName },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -208,12 +282,12 @@ fun RegisterScreen(
             )
 
             SylphTextField.SingleLine(
-                value = viewModel.email,
-                onValueChange = viewModel::updateEmail,
+                value = state.email,
+                onValueChange = { onEvent(RegisterEvent.Update.Email(it)) },
                 placeholder = "Email",
                 leadingIcon = emailIcon,
-                state = SylphTextFieldState.errorIf(!viewModel.validEmail),
-                helperText = "Email inválido".takeIf { !viewModel.validEmail },
+                state = SylphTextFieldState.errorIf(!state.validEmail),
+                helperText = "Email inválido".takeIf { !state.validEmail },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -221,24 +295,49 @@ fun RegisterScreen(
             )
 
             SylphTextField.Password(
-                value = viewModel.password,
-                onValueChange = viewModel::updatePassword,
-                placeholder = "Password",
+                value = state.password,
+                onValueChange = { onEvent(RegisterEvent.Update.Password(it)) },
+                placeholder = "Senha",
                 leadingIcon = passwordIcon,
-                state = SylphTextFieldState.errorIf(!viewModel.validPassword),
-                helperText = ValidationRule.Password.helperTextFor(viewModel.password)
-                    .takeIf { !viewModel.validPassword },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                keyboardActions = KeyboardActions(onGo = { /* TODO */ }),
+                state = SylphTextFieldState.errorIf(!state.validPassword),
+                helperText = ValidationRule.Password.helperTextFor(state.password)
+                    .takeIf { !state.validPassword },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier
                     .fillMaxWidth()
                     .imePadding()
             )
 
-            /*
-            "Já tem uma conta?"
-            "Entrar"
-            */
+            SylphTextField.Password(
+                value = state.passwordConfirmation,
+                onValueChange = { onEvent(RegisterEvent.Update.PasswordConfirmation(it)) },
+                placeholder = "Confirmação da senha",
+                leadingIcon = passwordIcon,
+                state = SylphTextFieldState.errorIf(!state.validPasswordConfirmation),
+                helperText = "A confirmação precisa ser igual à senha"
+                    .takeIf { !state.validPasswordConfirmation },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
+                keyboardActions = KeyboardActions(onGo = {
+                    keyboardController?.hide()
+                    onEvent(RegisterEvent.SignUp)
+                }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .imePadding()
+            )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun RegisterScreenPreview() {
+    SylphTheme {
+        RegisterScreen(
+            navigator = EmptyDestinationsNavigator,
+            signUpResult = null,
+            state = RegisterFormState("", true, "", true, "", true, "", true, false),
+            onEvent = {},
+        )
     }
 }

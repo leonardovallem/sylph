@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.internal.api.FirebaseNoSignedInUserException
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.domain.model.event.Event
@@ -23,16 +22,14 @@ class UserEventsViewModel @Inject constructor(
     private val eventsRepository: EventsRepository,
 ) : ViewModel() {
     var eventsQueryResult by mutableStateOf<Result<List<Event>>>(Result.Loading)
-
-    val currentUser: FirebaseUser?
-        get() = auth.currentUser
+        private set
 
     init {
         retrieveEvents()
     }
 
     fun retrieveEvents() {
-        if (currentUser == null) {
+        if (auth.currentUser == null) {
             eventsQueryResult = Result.Failure(
                 FirebaseNoSignedInUserException("Current user is null")
             )
@@ -43,7 +40,7 @@ class UserEventsViewModel @Inject constructor(
         eventsQueryResult = Result.Loading
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                eventsQueryResult = eventsRepository.retrieveUserEvents(currentUser!!.uid)
+                eventsQueryResult = eventsRepository.retrieveUserEvents(auth.currentUser!!.uid)
             }
         }
     }

@@ -11,8 +11,9 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.vallem.componentlibrary.extensions.encodeAsBase64
 import com.vallem.componentlibrary.util.ValidationRule
+import com.vallem.sylph.shared.auth.AuthData
 import com.vallem.sylph.shared.domain.model.Result
-import com.vallem.sylph.shared.domain.repository.AuthRepository
+import com.vallem.sylph.shared.domain.repository.FirebaseAuthRepository
 import com.vallem.sylph.shared.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -22,7 +23,7 @@ import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val authRepository: FirebaseAuthRepository,
     private val userRepository: UserRepository,
 ) : ViewModel() {
     var signUpResult by mutableStateOf<Result<FirebaseUser>?>(null)
@@ -34,8 +35,9 @@ class RegisterViewModel @Inject constructor(
         private set
     var password by mutableStateOf("")
         private set
-    var picture by mutableStateOf<Bitmap?>(null)
+    var passwordConfirmation by mutableStateOf("")
         private set
+    private var picture by mutableStateOf<Bitmap?>(null)
 
     private var hasNameFirstInput by mutableStateOf(false)
     private var hasEmailFirstInput by mutableStateOf(false)
@@ -49,34 +51,41 @@ class RegisterViewModel @Inject constructor(
         !hasPasswordFirstInput || ValidationRule.Password.isValid(password)
     }
 
+    val validPasswordConfirmation by derivedStateOf {
+        !validPassword || password == passwordConfirmation
+    }
+
     val validInput by derivedStateOf {
         if (!hasNameFirstInput || !hasEmailFirstInput || !hasPasswordFirstInput) false
-        else validEmail && validPassword && validName
+        else validEmail && validPassword && validName && password == passwordConfirmation
     }
 
-    fun updateName(value: String) {
-        hasNameFirstInput = true
-        name = value
+    fun onEvent(event: RegisterEvent): Any = when (event) {
+        is RegisterEvent.Update.Email -> {
+            hasEmailFirstInput = true
+            email = event.value
+        }
+
+        is RegisterEvent.Update.Name -> {
+            hasNameFirstInput = true
+            name = event.value
+        }
+
+        is RegisterEvent.Update.Password -> {
+            hasPasswordFirstInput = true
+            password = event.value
+        }
+
+        is RegisterEvent.Update.PasswordConfirmation -> passwordConfirmation = event.value
+        is RegisterEvent.Update.Picture -> picture = event.value
+
+        RegisterEvent.SignUp -> signUp()
     }
 
-    fun updateEmail(value: String) {
-        hasEmailFirstInput = true
-        email = value
-    }
-
-    fun updatePassword(value: String) {
-        hasPasswordFirstInput = true
-        password = value
-    }
-
-    fun updatePicture(bitmap: Bitmap) {
-        picture = bitmap
-    }
-
-    fun signUp() = viewModelScope.launch {
+    private fun signUp() = viewModelScope.launch {
         signUpResult = Result.Loading
         withContext(Dispatchers.IO) {
-            signUpResult = authRepository.signup(name, email, password)
+            signUpResult = authRepository.auth(AuthData.Email.Register(name, email, password))
 
             when (val res = signUpResult) {
                 is Result.Success -> userRepository.save(

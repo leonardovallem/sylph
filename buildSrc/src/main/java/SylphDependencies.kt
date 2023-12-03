@@ -13,12 +13,16 @@ object SylphDependencies {
                 const val HiltNavigation = "1.0.0"
             }
 
+            object Google {
+                const val Location = "21.0.1"
+                const val Auth = "20.7.0"
+            }
+
             const val Core = "1.10.0"
             const val LifecycleRuntime = "2.6.1"
             const val DataStore = "1.0.0"
             const val JUnit = "1.1.5"
             const val Espresso = "3.5.1"
-            const val GmsLocation = "21.0.1"
             const val Hilt = "2.44"
             const val Room = "2.4.1"
         }
@@ -67,9 +71,13 @@ object SylphDependencies {
                 const val HiltNavigation = "androidx.hilt:hilt-navigation-compose:${Versions.Android.Compose.HiltNavigation}"
             }
 
+            object Google {
+                const val Location = "com.google.android.gms:play-services-location:${Versions.Android.Google.Location}"
+                const val Auth = "com.google.android.gms:play-services-auth:${Versions.Android.Google.Auth}"
+            }
+
             const val Core = "androidx.core:core-ktx:${Versions.Android.Core}"
             const val LifecycleRuntime = "androidx.lifecycle:lifecycle-runtime-ktx:${Versions.Android.LifecycleRuntime}"
-            const val GmsLocation = "com.google.android.gms:play-services-location:${Versions.Android.GmsLocation}"
             const val DataStore = "androidx.datastore:datastore:${Versions.Android.DataStore}"
             const val Hilt = "com.google.dagger:hilt-android:${Versions.Android.Hilt}"
             const val HiltKapt = "com.google.dagger:hilt-compiler:${Versions.Android.Hilt}"

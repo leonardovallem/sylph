@@ -10,8 +10,13 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationCallback
@@ -25,7 +30,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-class LocationProvider internal constructor(
+class LocationProvider @RequiresPermission(permission.ACCESS_FINE_LOCATION) internal constructor(
     private val context: Context,
     updateInterval: Long = 10_000L
 ) {
@@ -61,6 +66,7 @@ class LocationProvider internal constructor(
         if (context.hasPermission(permission.ACCESS_FINE_LOCATION)) {
             manager.registerGnssStatusCallback(callback, null)
         }
+        // TODO request permission
 
         awaitClose { manager.unregisterGnssStatusCallback(callback) }
     }
@@ -94,8 +100,19 @@ class LocationProvider internal constructor(
             }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun rememberLocationProvider(updateInterval: Long = 10_000L): LocationProvider {
+fun rememberLocationProvider(
+    permissionState: PermissionState = rememberPermissionState(permission.ACCESS_FINE_LOCATION),
+    updateInterval: Long = 10_000L
+): LocationProvider? {
     val context = LocalContext.current
-    return remember { LocationProvider(context, updateInterval) }
+
+    return remember {
+        derivedStateOf {
+            @SuppressLint("MissingPermission")
+            if (permissionState.status.isGranted) LocationProvider(context, updateInterval)
+            else null
+        }
+    }.value
 }

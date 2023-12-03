@@ -35,7 +35,7 @@ class DynamoEventVotesDataSource(
             GetItemRequest(
                 DynamoTables.EventUserVotes,
                 mapOf(
-                    "user_id" to AttributeValue(userId),
+                    "voting_user_id" to AttributeValue(userId),
                     "event_id" to AttributeValue(eventId),
                 ),
             )
@@ -55,7 +55,7 @@ class DynamoEventVotesDataSource(
 
     override suspend fun retrieveVotesForUserEvents(userId: String) = client?.scan(
         ScanRequest(DynamoTables.EventUserVotes).apply {
-            filterExpression = "user_id = :userId"
+            filterExpression = "event_publisher_id = :userId"
             expressionAttributeValues = mapOf(":userId" to AttributeValue(userId))
         }
     )
