@@ -148,17 +148,17 @@ fun HomeScreen(
     BackHandler(onBack = navigator::popBackStack)
 
     OnLifecycleEvent(
-        onDestroy = {
-            mapState.mapView
-                ?.getMapboxMap()
-                ?.cameraState
-                ?.let(viewModel::saveMapCameraState)
-        },
-        onCreate = {
+        onStart = {
             mapCameraState
                 ?.toCameraState()
                 ?.toCameraOptions()
                 ?.let(mapState::setCameraOptions)
+        },
+        onStop = {
+            mapState.mapView
+                ?.getMapboxMap()
+                ?.cameraState
+                ?.let(viewModel::saveMapCameraState)
         },
     )
 

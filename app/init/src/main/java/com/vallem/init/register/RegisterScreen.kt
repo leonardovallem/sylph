@@ -72,7 +72,7 @@ import com.vallem.componentlibrary.ui.theme.ColorSystemBars
 import com.vallem.componentlibrary.ui.theme.SylphTheme
 import com.vallem.componentlibrary.ui.theme.TransFlagColors
 import com.vallem.componentlibrary.util.ValidationRule
-import com.vallem.init.destinations.OnboardingScreenDestination
+import com.vallem.sylph.home.presentation.destinations.HomeScreenDestination
 import com.vallem.sylph.shared.Routes
 import com.vallem.sylph.shared.domain.model.Result
 import com.vallem.sylph.shared.presentation.components.ImageCropper
@@ -157,7 +157,7 @@ private fun RegisterScreen(
 
     LaunchedEffect(signUpResult) {
         when (signUpResult) {
-            is Result.Success -> navigator.navigate(OnboardingScreenDestination)
+            is Result.Success -> navigator.navigate(HomeScreenDestination)
 
             is Result.Failure -> snackbarHostState.showSnackbar(
                 message = when (signUpResult.e) {
