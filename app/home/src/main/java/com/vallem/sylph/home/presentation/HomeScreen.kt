@@ -82,7 +82,6 @@ import com.vallem.sylph.events.presentation.detail.EventDetailsResult
 import com.vallem.sylph.home.presentation.model.HomeShortcut
 import com.vallem.sylph.shared.BuildConfig
 import com.vallem.sylph.shared.Routes
-import com.vallem.sylph.shared.SylphDestination
 import com.vallem.sylph.shared.data.datastore.MapCameraState
 import com.vallem.sylph.shared.data.datastore.toCameraState
 import com.vallem.sylph.shared.domain.model.Result
@@ -227,9 +226,14 @@ fun HomeScreen(
                 SylphBottomBar(
                     shortcuts = HomeShortcut.values,
                     onShortcutClick = {
+                        val cameraOptions = mapState.mapView
+                            ?.getMapboxMap()
+                            ?.cameraState
+                            ?.toCameraOptions()
+
                         when (it) {
                             HomeShortcut.AddEvent -> navigator.navigate(
-                                AddEventScreenDestination(null)
+                                AddEventScreenDestination(cameraOptions, point = null)
                             )
                         }
                     },
@@ -355,8 +359,7 @@ fun HomeScreen(
                         false
                     },
                     onLongClick = truthyCallback {
-                        SylphDestination.Screen.AddEvent(PointWrapper(it))
-                        navigator.navigate(AddEventScreenDestination(PointWrapper(it)))
+                        navigator.navigate(AddEventScreenDestination(null, PointWrapper(it)))
                     },
                     modifier = Modifier
                         .padding(12.dp)

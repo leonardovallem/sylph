@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.result.EmptyResultBackNavigator
 import com.ramcosta.composedestinations.result.ResultBackNavigator
@@ -83,6 +84,7 @@ import com.vallem.sylph.shared.util.truthyCallback
 @Destination(route = com.vallem.sylph.shared.Routes.Screen.AddEvent)
 @Composable
 fun AddEventScreen(
+    initialCameraOptions: CameraOptions?,
     point: PointWrapper?,
     navigator: ResultBackNavigator<Boolean>,
     viewModel: AddEventViewModel = hiltViewModel()
@@ -91,9 +93,8 @@ fun AddEventScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var currentPoint by rememberSaveable { mutableStateOf(point) }
-    val mapState = rememberMapState(center = currentPoint?.value)
-
+    var currentPoint by rememberSaveable { mutableStateOf<Point?>(null) }
+    val mapState = rememberMapState(center = currentPoint)
     var mapExpanded by rememberSaveable { mutableStateOf(point == null) }
 
     val mapHeightFraction by animateFloatAsState(
@@ -103,9 +104,13 @@ fun AddEventScreen(
 
     ColorSystemBars()
 
+    LaunchedEffect(Unit) {
+        initialCameraOptions?.let(mapState::setCameraOptions)
+    }
+
     LaunchedEffect(currentPoint) {
         currentPoint?.let {
-            mapState.addPointMarker(it.value, true)
+            mapState.addPointMarker(it, true)
         }
     }
 
@@ -162,7 +167,7 @@ fun AddEventScreen(
                     modifier = Modifier.size(width = maxWidth, height = maxHeight),
                     onClick = truthyCallback {
                         if (currentPoint == null) mapExpanded = false
-                        currentPoint = PointWrapper(it)
+                        currentPoint = it
                     }
                 )
 
@@ -183,9 +188,9 @@ fun AddEventScreen(
                 }
             }
 
-            currentPoint?.let { point ->
+            currentPoint?.let {
                 EventSettings(
-                    point = point.value,
+                    point = it,
                     isLoading = viewModel.eventSaveResult == Result.Loading,
                     onConfirm = viewModel::saveEvent
                 )
@@ -418,8 +423,9 @@ private fun EventSettings(
 private fun AddEventScreenPreview() {
     SylphTheme {
         AddEventScreen(
-            PointWrapper(Point.fromLngLat(50.0, 50.0)),
-            EmptyResultBackNavigator()
+            null,
+            null,
+            EmptyResultBackNavigator(),
         )
     }
 }
